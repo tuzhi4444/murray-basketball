@@ -3284,7 +3284,6 @@ const translations = {
 };
 
 let currentLang = 'zh';
-let translationObserver = null;
 let isApplyingTranslations = false;
 
 function t(text) {
@@ -3426,12 +3425,17 @@ function syncPageSelectors(pageId) {
 
 // 页面切换
 function showPage(pageId, evt) {
+  const page = document.getElementById(pageId);
+  if (!page) return;
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.sidebar-item').forEach(s => s.classList.remove('active'));
-  document.getElementById(pageId).classList.add('active');
+  page.classList.add('active');
   const trigger = evt?.target?.closest('.sidebar-item') || document.querySelector(`.sidebar-item[data-page="${pageId}"]`);
   if (trigger) trigger.classList.add('active');
   syncPageSelectors(pageId);
+  if (window.location.hash !== `#${pageId}`) {
+    history.replaceState({}, '', `${window.location.pathname}${window.location.search}#${pageId}`);
+  }
   
   // 更新页面特定内容
   if (pageId === 'dashboard') updateDashboard();
@@ -3457,7 +3461,7 @@ function showPage(pageId, evt) {
   if (pageId === 'analysis') updateAnalysis();
   if (pageId === 'reports') updateCompleteness();
   if (pageId === 'training') updateWeeklyPlan();
-  applyTranslations(document.body);
+  updateLanguageLinks();
 }
 
 // 子标签切换
@@ -4772,12 +4776,6 @@ window.onload = function() {
   if (initialPageId !== 'dashboard' && document.getElementById(initialPageId)) {
     showPage(initialPageId);
   }
-
-  translationObserver = new MutationObserver(() => {
-    if (isApplyingTranslations) return;
-    applyTranslations(document.body);
-  });
-  translationObserver.observe(document.body, { childList: true, subtree: true });
   
   // 自动检查预警
   setTimeout(checkAllAlerts, 1000);
