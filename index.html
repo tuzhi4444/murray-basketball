@@ -3396,11 +3396,9 @@ function setLanguage(lang) {
 
   const url = new URL(window.location.href);
   url.searchParams.set('lang', currentLang);
-  window.history.replaceState({}, '', url);
-
   const activePageId = getActivePageId();
-  showPage(activePageId);
-  applyTranslations(document.body);
+  url.hash = activePageId;
+  window.location.href = url.toString();
 }
 
 function syncPageSelectors(pageId) {
@@ -4747,19 +4745,28 @@ window.onload = function() {
   currentLang = ['zh', 'en', 'pt'].includes(urlLang) ? urlLang : (localStorage.getItem('murray_lang') || 'zh');
   const languageSelector = document.getElementById('languageSelector');
   if (languageSelector) languageSelector.value = currentLang;
-  syncPageSelectors('dashboard');
+  const initialPageId = window.location.hash ? window.location.hash.replace('#', '') : 'dashboard';
+  syncPageSelectors(initialPageId);
   
   updateDashboard();
   updateSchedulePage();
   updateVideoTable();
   updateMilestoneList();
   applyTranslations(document.body);
+  if (initialPageId !== 'dashboard' && document.getElementById(initialPageId)) {
+    showPage(initialPageId);
+  }
 
   translationObserver = new MutationObserver(() => {
     if (isApplyingTranslations) return;
     applyTranslations(document.body);
   });
   translationObserver.observe(document.body, { childList: true, subtree: true });
+
+  if (languageSelector) {
+    languageSelector.addEventListener('change', event => setLanguage(event.target.value));
+    languageSelector.addEventListener('input', event => setLanguage(event.target.value));
+  }
   
   // 自动检查预警
   setTimeout(checkAllAlerts, 1000);
