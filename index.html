@@ -152,9 +152,11 @@ tr:hover td { background: var(--surface2); }
 .block-title { font-size: 15px; font-weight: 700; color: var(--text); flex: 1; }
 .block-duration { font-size: 12px; color: var(--text-muted); background: var(--surface2); padding: 3px 10px; border-radius: 999px; border: 1px solid var(--border); }
 .block-content { background: var(--surface2); border-radius: 10px; overflow: hidden; border: 1px solid var(--border); }
-.exercise-row { display: grid; grid-template-columns: 1fr auto auto auto; gap: 10px; align-items: center; padding: 10px 14px; border-bottom: 1px solid var(--border); }
+.exercise-row { display: grid; grid-template-columns: minmax(0,1fr) auto auto auto; gap: 10px; align-items: center; padding: 10px 14px; border-bottom: 1px solid var(--border); }
 .exercise-row:last-child { border-bottom: none; }
+.ex-main { min-width: 0; }
 .ex-name { font-size: 13px; font-weight: 500; color: var(--text); }
+.ex-guide { font-size: 11px; color: var(--text-muted); margin-top: 4px; line-height: 1.5; }
 .ex-detail { font-size: 12px; color: var(--primary); font-weight: 700; white-space: nowrap; }
 .ex-rest { font-size: 11px; color: var(--text-muted); white-space: nowrap; }
 .ex-intensity { width: 8px; height: 8px; border-radius: 50%; }
@@ -3248,6 +3250,29 @@ const translations = {
     '不休息': 'No rest',
     '不计休息': 'Continuous',
     '分钟': 'min',
+    '双手自然摆臂，脚尖轻落地，逐渐把心率提起来。': 'Swing the arms naturally, land lightly on the balls of the feet, and raise the heart rate gradually.',
+    '双脚同时开合，膝盖和脚尖方向一致，保持均匀节奏。': 'Open and close both feet together, keep knees aligned with toes, and hold a steady rhythm.',
+    '依次活动髋、膝、踝，每个动作做到有控制、不弹震。': 'Mobilize hips, knees, and ankles in sequence with control and no bouncing.',
+    '重心放低，用手指控球，球不要高过膝盖。': 'Stay low, control the ball with the fingertips, and keep it below knee height.',
+    '眼睛看前方，球从身体前侧快速换手，节奏稳定。': 'Keep the eyes up and switch the ball quickly in front of the body with steady rhythm.',
+    '启动时前脚发力，急停时臀部向后坐稳住重心。': 'Drive off the front foot to start, then sit the hips back to stop under control.',
+    '弱侧多做，先保证不失误，再逐渐提速。': 'Give the weak side extra reps, own the control first, then add speed.',
+    '起跳后双脚同时落地，落地时膝盖对齐脚尖。': 'Jump and land on both feet together, with knees tracking over the toes.',
+    '保持防守姿势，脚下小步快移，整个过程不要并步交叉。': 'Hold a defensive stance, move with quick short steps, and do not cross the feet.',
+    '手肘在球下方，手腕放松，出手后手指朝向篮筐。': 'Keep the elbow under the ball, relax the wrist, and finish with the fingers toward the rim.',
+    '先接稳球，再转髋发力，动作一气呵成。': 'Secure the catch first, then turn the hips and release in one smooth action.',
+    '按顺序完成全身拉伸，每个位置停住呼吸放松。': 'Move through the full stretching order and pause long enough to relax into each position.',
+    '把注意力放在髋屈肌和臀部，拉到紧但不疼。': 'Target the hip flexors and glutes, stretching to tension but not pain.',
+    '突破时最后一步压低重心，绕过障碍后再加速。': 'Lower the hips on the last step, get around the obstacle, then re-accelerate.',
+    '每次变向后都要有明显启动和制动，不要省动作。': 'After every change of direction, show a clear burst and stop without cutting the movement short.',
+    '全程收紧核心，动作标准优先于数量。': 'Brace the core throughout and prioritize clean form over volume.',
+    '脚踝发力连续起跳，肩膀放松，节奏不要乱。': 'Bounce through the ankles, keep the shoulders relaxed, and stay rhythmic.',
+    '手肘在肩膀正下方，身体保持一条直线，不塌腰。': 'Keep the elbow under the shoulder, hold a straight line, and do not let the hips sag.',
+    '收紧臀部顶到最高点，停一秒再慢慢落下。': 'Squeeze the glutes to the top, pause for a second, then lower slowly.',
+    '慢慢吸气4秒、呼气6秒，让心率降下来。': 'Inhale for 4 seconds and exhale for 6 seconds to bring the heart rate down.',
+    '脚跟尽量踩实地面，小腿后侧有拉伸感即可。': 'Press the heel down as much as possible until you feel a stretch in the calf.',
+    '骨盆微微收紧，感受大腿前侧拉长，不要猛拉。': 'Keep the pelvis gently tucked and feel the front of the thigh lengthen without forcing it.',
+    '肩、髋、脚踝尽量保持一条直线。': 'Try to keep the shoulder, hip, and ankle in one straight line.',
     '数据指标科学依据': 'Scientific basis of the metrics',
     '暂无已达成里程碑': 'No completed milestones yet',
     '请输入里程碑名称': 'Please enter a milestone name',
@@ -3551,6 +3576,29 @@ const translations = {
     '不休息': 'Sem descanso',
     '不计休息': 'Contínuo',
     '分钟': 'min',
+    '双手自然摆臂，脚尖轻落地，逐渐把心率提起来。': 'Balance os braços naturalmente, aterre leve na ponta dos pés e aumente a frequência cardíaca aos poucos.',
+    '双脚同时开合，膝盖和脚尖方向一致，保持均匀节奏。': 'Abra e feche os pés ao mesmo tempo, com joelhos alinhados com os dedos e ritmo constante.',
+    '依次活动髋、膝、踝，每个动作做到有控制、不弹震。': 'Mobilize anca, joelhos e tornozelos em sequência, com controlo e sem balanços bruscos.',
+    '重心放低，用手指控球，球不要高过膝盖。': 'Mantenha o centro de gravidade baixo, controle a bola com os dedos e não a deixe subir acima do joelho.',
+    '眼睛看前方，球从身体前侧快速换手，节奏稳定。': 'Olhe em frente e troque a bola rapidamente à frente do corpo com ritmo estável.',
+    '启动时前脚发力，急停时臀部向后坐稳住重心。': 'No arranque empurre com o pé da frente; na travagem leve a anca para trás para estabilizar.',
+    '弱侧多做，先保证不失误，再逐渐提速。': 'Dê mais repetições ao lado fraco, garanta o controlo primeiro e aumente a velocidade depois.',
+    '起跳后双脚同时落地，落地时膝盖对齐脚尖。': 'Após o salto, aterre com os dois pés ao mesmo tempo e joelhos alinhados com os dedos dos pés.',
+    '保持防守姿势，脚下小步快移，整个过程不要并步交叉。': 'Mantenha a postura defensiva, use passos curtos e rápidos e não cruze os pés.',
+    '手肘在球下方，手腕放松，出手后手指朝向篮筐。': 'Mantenha o cotovelo debaixo da bola, o punho solto e termine com os dedos apontados ao aro.',
+    '先接稳球，再转髋发力，动作一气呵成。': 'Primeiro receba a bola com controlo, depois rode a anca e finalize num só movimento.',
+    '按顺序完成全身拉伸，每个位置停住呼吸放松。': 'Faça toda a sequência de alongamento na ordem certa e pare em cada posição para relaxar.',
+    '把注意力放在髋屈肌和臀部，拉到紧但不疼。': 'Foque-se nos flexores da anca e nos glúteos, alongando até sentir tensão mas não dor.',
+    '突破时最后一步压低重心，绕过障碍后再加速。': 'No último passo da penetração baixe o centro de gravidade e acelere depois do obstáculo.',
+    '每次变向后都要有明显启动和制动，不要省动作。': 'Depois de cada mudança de direção, faça um arranque e uma travagem claros, sem encurtar o gesto.',
+    '全程收紧核心，动作标准优先于数量。': 'Mantenha o core ativo o tempo todo e dê prioridade à técnica em vez da quantidade.',
+    '脚踝发力连续起跳，肩膀放松，节奏不要乱。': 'Impulsione com os tornozelos, mantenha os ombros soltos e não perca o ritmo.',
+    '手肘在肩膀正下方，身体保持一条直线，不塌腰。': 'Mantenha o cotovelo debaixo do ombro, o corpo em linha reta e sem afundar a lombar.',
+    '收紧臀部顶到最高点，停一秒再慢慢落下。': 'Contraia os glúteos até ao topo, pare um segundo e desça devagar.',
+    '慢慢吸气4秒、呼气6秒，让心率降下来。': 'Inspire durante 4 segundos e expire durante 6 segundos para baixar a frequência cardíaca.',
+    '脚跟尽量踩实地面，小腿后侧有拉伸感即可。': 'Mantenha o calcanhar o mais apoiado possível até sentir o alongamento na barriga da perna.',
+    '骨盆微微收紧，感受大腿前侧拉长，不要猛拉。': 'Mantenha a bacia ligeiramente encaixada e sinta a parte da frente da coxa alongar sem forçar.',
+    '肩、髋、脚踝尽量保持一条直线。': 'Tente manter ombro, anca e tornozelo alinhados numa linha reta.',
     '数据指标科学依据': 'Base científica dos indicadores',
     '暂无已达成里程碑': 'Ainda não há marcos concluídos',
     '请输入里程碑名称': 'Introduza o nome do marco',
@@ -4803,26 +4851,26 @@ function updateWeeklyPlan() {
       tip: '关注运球高度和手掌控制，不要用掌心，用指尖！',
       blocks: [
         { type: 'warmup', title: '热身', dur: 8, exercises: [
-          { name: '原地慢跑/高抬腿热身', detail: '2分钟', rest: '不休息', intensity: 'low' },
-          { name: '开合跳', detail: '1分钟', rest: '休息20秒', intensity: 'low' },
-          { name: '动态拉伸（髋、膝、踝）', detail: '3分钟', rest: '不休息', intensity: 'low' }
+          { name: '原地慢跑/高抬腿热身', guide: '双手自然摆臂，脚尖轻落地，逐渐把心率提起来。', detail: '2分钟', rest: '不休息', intensity: 'low' },
+          { name: '开合跳', guide: '双脚同时开合，膝盖和脚尖方向一致，保持均匀节奏。', detail: '1分钟', rest: '休息20秒', intensity: 'low' },
+          { name: '动态拉伸（髋、膝、踝）', guide: '依次活动髋、膝、踝，每个动作做到有控制、不弹震。', detail: '3分钟', rest: '不休息', intensity: 'low' }
         ]},
         { type: 'skill', title: '球感训练', dur: 12, exercises: [
-          { name: '右手低运球', detail: '1分钟', rest: '休息20秒', intensity: 'low' },
-          { name: '左手低运球', detail: '1分钟', rest: '休息20秒', intensity: 'low' },
-          { name: '体前变向连续运球', detail: '2分钟', rest: '休息20秒', intensity: 'med' }
+          { name: '右手低运球', guide: '重心放低，用手指控球，球不要高过膝盖。', detail: '1分钟', rest: '休息20秒', intensity: 'low' },
+          { name: '左手低运球', guide: '重心放低，用手指控球，球不要高过膝盖。', detail: '1分钟', rest: '休息20秒', intensity: 'low' },
+          { name: '体前变向连续运球', guide: '眼睛看前方，球从身体前侧快速换手，节奏稳定。', detail: '2分钟', rest: '休息20秒', intensity: 'med' }
         ]},
         { type: 'tech', title: '技术主题', dur: 18, exercises: [
-          { name: '启动-急停动作完成 9/10 组', detail: '6组', rest: '组间休息40秒', intensity: 'med' },
-          { name: '弱手运球强化 (20分钟)', detail: '4组', rest: '组间休息40秒', intensity: 'med' }
+          { name: '启动-急停动作完成 9/10 组', guide: '启动时前脚发力，急停时臀部向后坐稳住重心。', detail: '6组', rest: '组间休息40秒', intensity: 'med' },
+          { name: '弱手运球强化 (20分钟)', guide: '弱侧多做，先保证不失误，再逐渐提速。', detail: '4组', rest: '组间休息40秒', intensity: 'med' }
         ]},
         { type: 'core', title: '核心力量', dur: 10, exercises: [
-          { name: '平板支撑', detail: '25秒 × 3组', rest: '休息20秒', intensity: 'med' },
-          { name: '臀桥', detail: '20次 × 3组', rest: '休息20秒', intensity: 'med' }
+          { name: '平板支撑', guide: '手肘在肩膀正下方，身体保持一条直线，不塌腰。', detail: '25秒 × 3组', rest: '休息20秒', intensity: 'med' },
+          { name: '臀桥', guide: '收紧臀部顶到最高点，停一秒再慢慢落下。', detail: '20次 × 3组', rest: '休息20秒', intensity: 'med' }
         ]},
         { type: 'cooldown', title: '放松拉伸', dur: 6, exercises: [
-          { name: '小腿拉伸', detail: '1分钟', rest: '不计休息', intensity: 'low' },
-          { name: '深呼吸放松', detail: '1分钟', rest: '不计休息', intensity: 'low' }
+          { name: '小腿拉伸', guide: '脚跟尽量踩实地面，小腿后侧有拉伸感即可。', detail: '1分钟', rest: '不计休息', intensity: 'low' },
+          { name: '深呼吸放松', guide: '慢慢吸气4秒、呼气6秒，让心率降下来。', detail: '1分钟', rest: '不计休息', intensity: 'low' }
         ]}
       ]
     },
@@ -4832,23 +4880,23 @@ function updateWeeklyPlan() {
       tip: '落地时膝盖不要内扣，重心放低，动作先慢后快。',
       blocks: [
         { type: 'warmup', title: '热身', dur: 8, exercises: [
-          { name: '原地慢跑/高抬腿热身', detail: '2分钟', rest: '不休息', intensity: 'low' },
-          { name: '动态拉伸（髋、膝、踝）', detail: '3分钟', rest: '不休息', intensity: 'low' }
+          { name: '原地慢跑/高抬腿热身', guide: '双手自然摆臂，脚尖轻落地，逐渐把心率提起来。', detail: '2分钟', rest: '不休息', intensity: 'low' },
+          { name: '动态拉伸（髋、膝、踝）', guide: '依次活动髋、膝、踝，每个动作做到有控制、不弹震。', detail: '3分钟', rest: '不休息', intensity: 'low' }
         ]},
         { type: 'skill', title: '球感训练', dur: 10, exercises: [
-          { name: '右手低运球', detail: '1分钟', rest: '休息20秒', intensity: 'low' },
-          { name: '左手低运球', detail: '1分钟', rest: '休息20秒', intensity: 'low' }
+          { name: '右手低运球', guide: '重心放低，用手指控球，球不要高过膝盖。', detail: '1分钟', rest: '休息20秒', intensity: 'low' },
+          { name: '左手低运球', guide: '重心放低，用手指控球，球不要高过膝盖。', detail: '1分钟', rest: '休息20秒', intensity: 'low' }
         ]},
         { type: 'tech', title: '技术主题', dur: 20, exercises: [
-          { name: '跳停（双脚同时落地）', detail: '6组', rest: '组间休息40秒', intensity: 'med' },
-          { name: '防守滑步来回', detail: '5组', rest: '组间休息40秒', intensity: 'high' }
+          { name: '跳停（双脚同时落地）', guide: '起跳后双脚同时落地，落地时膝盖对齐脚尖。', detail: '6组', rest: '组间休息40秒', intensity: 'med' },
+          { name: '防守滑步来回', guide: '保持防守姿势，脚下小步快移，整个过程不要并步交叉。', detail: '5组', rest: '组间休息40秒', intensity: 'high' }
         ]},
         { type: 'fitness', title: '体能间歇', dur: 8, exercises: [
-          { name: '跳绳', detail: '30秒 × 6轮', rest: '休息20秒', intensity: 'med' }
+          { name: '跳绳', guide: '脚踝发力连续起跳，肩膀放松，节奏不要乱。', detail: '30秒 × 6轮', rest: '休息20秒', intensity: 'med' }
         ]},
         { type: 'cooldown', title: '放松拉伸', dur: 6, exercises: [
-          { name: '大腿前侧拉伸', detail: '1分钟', rest: '不计休息', intensity: 'low' },
-          { name: '深呼吸放松', detail: '1分钟', rest: '不计休息', intensity: 'low' }
+          { name: '大腿前侧拉伸', guide: '骨盆微微收紧，感受大腿前侧拉长，不要猛拉。', detail: '1分钟', rest: '不计休息', intensity: 'low' },
+          { name: '深呼吸放松', guide: '慢慢吸气4秒、呼气6秒，让心率降下来。', detail: '1分钟', rest: '不计休息', intensity: 'low' }
         ]}
       ]
     },
@@ -4858,22 +4906,22 @@ function updateWeeklyPlan() {
       tip: '拨球时手腕要完全下弯，每一次出手动作都要一模一样。',
       blocks: [
         { type: 'warmup', title: '热身', dur: 8, exercises: [
-          { name: '原地慢跑/高抬腿热身', detail: '2分钟', rest: '不休息', intensity: 'low' },
-          { name: '动态拉伸（髋、膝、踝）', detail: '3分钟', rest: '不休息', intensity: 'low' }
+          { name: '原地慢跑/高抬腿热身', guide: '双手自然摆臂，脚尖轻落地，逐渐把心率提起来。', detail: '2分钟', rest: '不休息', intensity: 'low' },
+          { name: '动态拉伸（髋、膝、踝）', guide: '依次活动髋、膝、踝，每个动作做到有控制、不弹震。', detail: '3分钟', rest: '不休息', intensity: 'low' }
         ]},
         { type: 'skill', title: '球感训练', dur: 10, exercises: [
-          { name: '手型检查：托球直上直下', detail: '2分钟', rest: '休息20秒', intensity: 'low' }
+          { name: '手型检查：托球直上直下', guide: '手肘在球下方，手腕放松，出手后手指朝向篮筐。', detail: '2分钟', rest: '休息20秒', intensity: 'low' }
         ]},
         { type: 'tech', title: '技术主题', dur: 20, exercises: [
-          { name: '近距投篮出手动作', detail: '50次', rest: '组间休息40秒', intensity: 'med' },
-          { name: '接球-转髋-出手连贯动作', detail: '15次 × 3组', rest: '组间休息40秒', intensity: 'med' }
+          { name: '近距投篮出手动作', guide: '手肘在球下方，手腕放松，出手后手指朝向篮筐。', detail: '50次', rest: '组间休息40秒', intensity: 'med' },
+          { name: '接球-转髋-出手连贯动作', guide: '先接稳球，再转髋发力，动作一气呵成。', detail: '15次 × 3组', rest: '组间休息40秒', intensity: 'med' }
         ]},
         { type: 'core', title: '核心力量', dur: 8, exercises: [
-          { name: '平板支撑', detail: '25秒 × 3组', rest: '休息20秒', intensity: 'med' }
+          { name: '平板支撑', guide: '手肘在肩膀正下方，身体保持一条直线，不塌腰。', detail: '25秒 × 3组', rest: '休息20秒', intensity: 'med' }
         ]},
         { type: 'cooldown', title: '放松拉伸', dur: 6, exercises: [
-          { name: '小腿拉伸', detail: '1分钟', rest: '不计休息', intensity: 'low' },
-          { name: '深呼吸放松', detail: '1分钟', rest: '不计休息', intensity: 'low' }
+          { name: '小腿拉伸', guide: '脚跟尽量踩实地面，小腿后侧有拉伸感即可。', detail: '1分钟', rest: '不计休息', intensity: 'low' },
+          { name: '深呼吸放松', guide: '慢慢吸气4秒、呼气6秒，让心率降下来。', detail: '1分钟', rest: '不计休息', intensity: 'low' }
         ]}
       ]
     },
@@ -4883,14 +4931,14 @@ function updateWeeklyPlan() {
       tip: '今天强度低，但拉伸要认真做，这才是真正的恢复。',
       blocks: [
         { type: 'warmup', title: '热身', dur: 6, exercises: [
-          { name: '原地慢跑/高抬腿热身', detail: '2分钟', rest: '不休息', intensity: 'low' }
+          { name: '原地慢跑/高抬腿热身', guide: '双手自然摆臂，脚尖轻落地，逐渐把心率提起来。', detail: '2分钟', rest: '不休息', intensity: 'low' }
         ]},
         { type: 'core', title: '核心力量', dur: 10, exercises: [
-          { name: '静态拉伸全身流程', detail: '4分钟', rest: '不计休息', intensity: 'low' },
-          { name: '髋部深度拉伸', detail: '2分钟', rest: '不计休息', intensity: 'low' }
+          { name: '静态拉伸全身流程', guide: '按顺序完成全身拉伸，每个位置停住呼吸放松。', detail: '4分钟', rest: '不计休息', intensity: 'low' },
+          { name: '髋部深度拉伸', guide: '把注意力放在髋屈肌和臀部，拉到紧但不疼。', detail: '2分钟', rest: '不计休息', intensity: 'low' }
         ]},
         { type: 'cooldown', title: '放松拉伸', dur: 8, exercises: [
-          { name: '深呼吸放松', detail: '2分钟', rest: '不计休息', intensity: 'low' }
+          { name: '深呼吸放松', guide: '慢慢吸气4秒、呼气6秒，让心率降下来。', detail: '2分钟', rest: '不计休息', intensity: 'low' }
         ]}
       ]
     },
@@ -4900,21 +4948,21 @@ function updateWeeklyPlan() {
       tip: '变向时眼睛看前方，不要低头看球，模拟真实比赛意识。',
       blocks: [
         { type: 'warmup', title: '热身', dur: 8, exercises: [
-          { name: '原地慢跑/高抬腿热身', detail: '2分钟', rest: '不休息', intensity: 'low' },
-          { name: '开合跳', detail: '1分钟', rest: '休息20秒', intensity: 'low' }
+          { name: '原地慢跑/高抬腿热身', guide: '双手自然摆臂，脚尖轻落地，逐渐把心率提起来。', detail: '2分钟', rest: '不休息', intensity: 'low' },
+          { name: '开合跳', guide: '双脚同时开合，膝盖和脚尖方向一致，保持均匀节奏。', detail: '1分钟', rest: '休息20秒', intensity: 'low' }
         ]},
         { type: 'skill', title: '球感训练', dur: 10, exercises: [
-          { name: '体前变向连续运球', detail: '2分钟', rest: '休息20秒', intensity: 'med' }
+          { name: '体前变向连续运球', guide: '眼睛看前方，球从身体前侧快速换手，节奏稳定。', detail: '2分钟', rest: '休息20秒', intensity: 'med' }
         ]},
         { type: 'tech', title: '技术主题', dur: 20, exercises: [
-          { name: '变向-启动-急停-假投循环', detail: '6组', rest: '组间休息40秒', intensity: 'high' },
-          { name: '障碍物（水瓶）绕杆突破', detail: '5组', rest: '组间休息40秒', intensity: 'high' }
+          { name: '变向-启动-急停-假投循环', guide: '每次变向后都要有明显启动和制动，不要省动作。', detail: '6组', rest: '组间休息40秒', intensity: 'high' },
+          { name: '障碍物（水瓶）绕杆突破', guide: '突破时最后一步压低重心，绕过障碍后再加速。', detail: '5组', rest: '组间休息40秒', intensity: 'high' }
         ]},
         { type: 'fitness', title: '体能间歇', dur: 8, exercises: [
-          { name: '登山跑', detail: '30秒 × 6轮', rest: '休息20秒', intensity: 'high' }
+          { name: '登山跑', guide: '全程收紧核心，动作标准优先于数量。', detail: '30秒 × 6轮', rest: '休息20秒', intensity: 'high' }
         ]},
         { type: 'cooldown', title: '放松拉伸', dur: 6, exercises: [
-          { name: '深呼吸放松', detail: '1分钟', rest: '不计休息', intensity: 'low' }
+          { name: '深呼吸放松', guide: '慢慢吸气4秒、呼气6秒，让心率降下来。', detail: '1分钟', rest: '不计休息', intensity: 'low' }
         ]}
       ]
     },
@@ -4924,21 +4972,21 @@ function updateWeeklyPlan() {
       tip: '今天比平时多一点点努力，但不要追求数量，要追求质量。',
       blocks: [
         { type: 'warmup', title: '热身', dur: 8, exercises: [
-          { name: '原地慢跑/高抬腿热身', detail: '2分钟', rest: '不休息', intensity: 'low' },
-          { name: '动态拉伸（髋、膝、踝）', detail: '3分钟', rest: '不休息', intensity: 'low' }
+          { name: '原地慢跑/高抬腿热身', guide: '双手自然摆臂，脚尖轻落地，逐渐把心率提起来。', detail: '2分钟', rest: '不休息', intensity: 'low' },
+          { name: '动态拉伸（髋、膝、踝）', guide: '依次活动髋、膝、踝，每个动作做到有控制、不弹震。', detail: '3分钟', rest: '不休息', intensity: 'low' }
         ]},
         { type: 'fitness', title: '体能间歇', dur: 18, exercises: [
-          { name: '波比跳', detail: '5次 × 6轮', rest: '休息20秒', intensity: 'high' },
-          { name: '跳绳', detail: '40秒 × 5轮', rest: '休息20秒', intensity: 'med' }
+          { name: '波比跳', guide: '全程收紧核心，动作标准优先于数量。', detail: '5次 × 6轮', rest: '休息20秒', intensity: 'high' },
+          { name: '跳绳', guide: '脚踝发力连续起跳，肩膀放松，节奏不要乱。', detail: '40秒 × 5轮', rest: '休息20秒', intensity: 'med' }
         ]},
         { type: 'core', title: '核心力量', dur: 10, exercises: [
-          { name: '平板支撑', detail: '30秒 × 3组', rest: '休息20秒', intensity: 'med' },
-          { name: '侧桥（左侧）', detail: '20秒 × 3组', rest: '休息20秒', intensity: 'med' },
-          { name: '侧桥（右侧）', detail: '20秒 × 3组', rest: '休息20秒', intensity: 'med' }
+          { name: '平板支撑', guide: '手肘在肩膀正下方，身体保持一条直线，不塌腰。', detail: '30秒 × 3组', rest: '休息20秒', intensity: 'med' },
+          { name: '侧桥（左侧）', guide: '肩、髋、脚踝尽量保持一条直线。', detail: '20秒 × 3组', rest: '休息20秒', intensity: 'med' },
+          { name: '侧桥（右侧）', guide: '肩、髋、脚踝尽量保持一条直线。', detail: '20秒 × 3组', rest: '休息20秒', intensity: 'med' }
         ]},
         { type: 'cooldown', title: '放松拉伸', dur: 6, exercises: [
-          { name: '大腿前侧拉伸', detail: '1分钟', rest: '不计休息', intensity: 'low' },
-          { name: '深呼吸放松', detail: '1分钟', rest: '不计休息', intensity: 'low' }
+          { name: '大腿前侧拉伸', guide: '骨盆微微收紧，感受大腿前侧拉长，不要猛拉。', detail: '1分钟', rest: '不计休息', intensity: 'low' },
+          { name: '深呼吸放松', guide: '慢慢吸气4秒、呼气6秒，让心率降下来。', detail: '1分钟', rest: '不计休息', intensity: 'low' }
         ]}
       ]
     },
@@ -5065,7 +5113,10 @@ function renderTrainingDay() {
         <div class="block-content">
           ${block.exercises.map(ex => `
             <div class="exercise-row">
-              <span class="ex-name">${t(ex.name)}</span>
+              <div class="ex-main">
+                <div class="ex-name">${t(ex.name)}</div>
+                ${ex.guide ? `<div class="ex-guide">${t(ex.guide)}</div>` : ''}
+              </div>
               <span class="ex-detail">${t(ex.detail)}</span>
               <span class="ex-rest">${t(ex.rest)}</span>
               <span class="ex-intensity intensity-${ex.intensity}"></span>
