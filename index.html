@@ -3287,10 +3287,45 @@ const translations = {
 let currentLang = 'zh';
 let isApplyingTranslations = false;
 const generatedTranslations = window.MURRAY_TRANSLATIONS_GENERATED || { en: {}, pt: {} };
+let translationObserver = null;
+const replacementCache = { en: new Map(), pt: new Map() };
+const replacementKeys = { en: null, pt: null };
 
 function t(text) {
   if (currentLang === 'zh') return text;
   return translations[currentLang]?.[text] || generatedTranslations[currentLang]?.[text] || text;
+}
+
+function getReplacementKeys(lang) {
+  if (lang === 'zh') return [];
+  if (replacementKeys[lang]) return replacementKeys[lang];
+  const keys = Array.from(new Set([
+    ...Object.keys(generatedTranslations[lang] || {}),
+    ...Object.keys(translations[lang] || {})
+  ]))
+    .filter(key => /[\u4e00-\u9fff]/.test(key))
+    .sort((a, b) => b.length - a.length);
+  replacementKeys[lang] = keys;
+  return keys;
+}
+
+function replaceChineseSegments(text) {
+  if (!text || currentLang === 'zh' || !/[\u4e00-\u9fff]/.test(text)) return text;
+  const cache = replacementCache[currentLang];
+  if (cache.has(text)) return cache.get(text);
+
+  let output = text;
+  for (const key of getReplacementKeys(currentLang)) {
+    if (!output.includes(key)) continue;
+    const translated = translations[currentLang]?.[key] || generatedTranslations[currentLang]?.[key];
+    if (translated && translated !== key) {
+      output = output.split(key).join(translated);
+    }
+  }
+
+  output = translateDynamicValue(output);
+  cache.set(text, output);
+  return output;
 }
 
 function translateDynamicValue(text) {
@@ -3384,8 +3419,8 @@ function translateTextNode(node) {
   node._originalText = original;
   const trimmed = original.trim();
   if (!trimmed) return;
-  const translated = t(trimmed);
-  const finalText = translated === trimmed ? translateDynamicValue(trimmed) : translated;
+  const translated = replaceChineseSegments(trimmed);
+  const finalText = translated;
   if (finalText === trimmed) {
     node.textContent = original;
     return;
@@ -3417,18 +3452,39 @@ function applyTranslations(root = document.body) {
     if (el.hasAttribute('placeholder')) {
       const originalPlaceholder = el.dataset.originalPlaceholder || el.getAttribute('placeholder');
       el.dataset.originalPlaceholder = originalPlaceholder;
-      el.setAttribute('placeholder', t(originalPlaceholder));
+      el.setAttribute('placeholder', replaceChineseSegments(originalPlaceholder));
     }
     if (el.tagName === 'OPTION') {
       const originalText = el.dataset.originalText || el.textContent;
       el.dataset.originalText = originalText;
-      el.textContent = t(originalText);
+      el.textContent = replaceChineseSegments(originalText);
     }
   });
 
   updateAgeGroupSelectorLabels();
   updateLanguageLinks();
   isApplyingTranslations = false;
+}
+
+function observeTranslations() {
+  if (translationObserver) translationObserver.disconnect();
+  translationObserver = new MutationObserver(mutations => {
+    if (isApplyingTranslations || currentLang === 'zh') return;
+    for (const mutation of mutations) {
+      if (mutation.type === 'childList') {
+        mutation.addedNodes.forEach(node => {
+          if (node.nodeType === Node.TEXT_NODE) {
+            translateTextNode(node);
+          } else if (node.nodeType === Node.ELEMENT_NODE) {
+            applyTranslations(node);
+          }
+        });
+      } else if (mutation.type === 'characterData') {
+        translateTextNode(mutation.target);
+      }
+    }
+  });
+  translationObserver.observe(document.body, { childList: true, subtree: true, characterData: true });
 }
 
 function getActivePageId() {
@@ -4809,6 +4865,7 @@ window.onload = function() {
   updateVideoTable();
   updateMilestoneList();
   applyTranslations(document.body);
+  observeTranslations();
   if (initialPageId !== 'dashboard' && document.getElementById(initialPageId)) {
     showPage(initialPageId);
   }
