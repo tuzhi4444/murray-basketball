@@ -3075,6 +3075,30 @@ const translations = {
     '数据收集日程表': 'Data collection schedule',
     '数据收集操作指南': 'Data collection guide',
     '本周训练计划': 'Weekly training plan',
+    '周一 - 技术训练': 'Monday - Skills Training',
+    '周二 - 体能训练': 'Tuesday - Physical Training',
+    '周三 - 技术训练': 'Wednesday - Skills Training',
+    '周四 - 休息/恢复': 'Thursday - Rest / Recovery',
+    '周五 - 综合训练': 'Friday - Combined Training',
+    '周六 - 比赛日': 'Saturday - Game Day',
+    '周日 - 休息': 'Sunday - Rest',
+    '投篮手型固定练习 (30分钟)': 'Shooting form repetition (30 min)',
+    '弱手运球强化 (20分钟)': 'Weak-hand dribbling work (20 min)',
+    '传球准确性训练 (20分钟)': 'Passing accuracy drills (20 min)',
+    '爆发力维持训练 (30分钟)': 'Power maintenance training (30 min)',
+    '速度保持训练 (20分钟)': 'Speed maintenance training (20 min)',
+    '核心力量训练 (20分钟)': 'Core strength training (20 min)',
+    '运球后投篮练习 (30分钟)': 'Pull-up shooting after dribble (30 min)',
+    '防守脚步训练 (20分钟)': 'Defensive footwork drills (20 min)',
+    '接球投篮练习 (20分钟)': 'Catch-and-shoot practice (20 min)',
+    '轻度拉伸 (15分钟)': 'Light stretching (15 min)',
+    '营养补充重点': 'Focus on recovery nutrition',
+    '2对2小场比赛 (40分钟)': '2-on-2 small-sided games (40 min)',
+    '快攻配合练习 (20分钟)': 'Fast-break coordination drills (20 min)',
+    '投篮比赛 (20分钟)': 'Shooting competition (20 min)',
+    '正式比赛或模拟比赛': 'Official game or simulated game',
+    '赛后总结分析': 'Post-game review and analysis',
+    '完全休息或轻度活动': 'Complete rest or light activity',
     '数据指标科学依据': 'Scientific basis of the metrics',
     '暂无已达成里程碑': 'No completed milestones yet',
     '请输入里程碑名称': 'Please enter a milestone name',
@@ -3253,6 +3277,30 @@ const translations = {
     '数据收集日程表': 'Calendário de recolha de dados',
     '数据收集操作指南': 'Guia de recolha de dados',
     '本周训练计划': 'Plano de treino da semana',
+    '周一 - 技术训练': 'Segunda-feira - Treino técnico',
+    '周二 - 体能训练': 'Terça-feira - Treino físico',
+    '周三 - 技术训练': 'Quarta-feira - Treino técnico',
+    '周四 - 休息/恢复': 'Quinta-feira - Descanso / Recuperação',
+    '周五 - 综合训练': 'Sexta-feira - Treino combinado',
+    '周六 - 比赛日': 'Sábado - Dia de jogo',
+    '周日 - 休息': 'Domingo - Descanso',
+    '投篮手型固定练习 (30分钟)': 'Repetição da mecânica de lançamento (30 min)',
+    '弱手运球强化 (20分钟)': 'Treino de drible com a mão fraca (20 min)',
+    '传球准确性训练 (20分钟)': 'Exercícios de precisão no passe (20 min)',
+    '爆发力维持训练 (30分钟)': 'Treino de manutenção da potência (30 min)',
+    '速度保持训练 (20分钟)': 'Treino de manutenção da velocidade (20 min)',
+    '核心力量训练 (20分钟)': 'Treino de força do core (20 min)',
+    '运球后投篮练习 (30分钟)': 'Lançamento após drible (30 min)',
+    '防守脚步训练 (20分钟)': 'Exercícios de deslocamento defensivo (20 min)',
+    '接球投篮练习 (20分钟)': 'Treino de receção e lançamento (20 min)',
+    '轻度拉伸 (15分钟)': 'Alongamentos leves (15 min)',
+    '营养补充重点': 'Foco na nutrição de recuperação',
+    '2对2小场比赛 (40分钟)': 'Jogos reduzidos 2x2 (40 min)',
+    '快攻配合练习 (20分钟)': 'Exercícios de coordenação no contra-ataque (20 min)',
+    '投篮比赛 (20分钟)': 'Competição de lançamentos (20 min)',
+    '正式比赛或模拟比赛': 'Jogo oficial ou simulação de jogo',
+    '赛后总结分析': 'Revisão e análise pós-jogo',
+    '完全休息或轻度活动': 'Descanso completo ou atividade leve',
     '数据指标科学依据': 'Base científica dos indicadores',
     '暂无已达成里程碑': 'Ainda não há marcos concluídos',
     '请输入里程碑名称': 'Introduza o nome do marco',
@@ -4461,13 +4509,13 @@ function updateCompleteness() {
 function updateWeeklyPlan() {
   const plan = document.getElementById('weeklyPlan');
   if (plan) plan.innerHTML = `
-    <div class="suggestion-card"><div class="suggestion-title">周一 - 技术训练</div><ul class="suggestion-list"><li>投篮手型固定练习 (30分钟)</li><li>弱手运球强化 (20分钟)</li><li>传球准确性训练 (20分钟)</li></ul></div>
-    <div class="suggestion-card"><div class="suggestion-title">周二 - 体能训练</div><ul class="suggestion-list"><li>爆发力维持训练 (30分钟)</li><li>速度保持训练 (20分钟)</li><li>核心力量训练 (20分钟)</li></ul></div>
-    <div class="suggestion-card"><div class="suggestion-title">周三 - 技术训练</div><ul class="suggestion-list"><li>运球后投篮练习 (30分钟)</li><li>防守脚步训练 (20分钟)</li><li>接球投篮练习 (20分钟)</li></ul></div>
-    <div class="suggestion-card"><div class="suggestion-title">周四 - 休息/恢复</div><ul class="suggestion-list"><li>轻度拉伸 (15分钟)</li><li>营养补充重点</li></ul></div>
-    <div class="suggestion-card"><div class="suggestion-title">周五 - 综合训练</div><ul class="suggestion-list"><li>2对2小场比赛 (40分钟)</li><li>快攻配合练习 (20分钟)</li><li>投篮比赛 (20分钟)</li></ul></div>
-    <div class="suggestion-card"><div class="suggestion-title">周六 - 比赛日</div><ul class="suggestion-list"><li>正式比赛或模拟比赛</li><li>赛后总结分析</li></ul></div>
-    <div class="suggestion-card"><div class="suggestion-title">周日 - 休息</div><ul class="suggestion-list"><li>完全休息或轻度活动</li></ul></div>
+    <div class="suggestion-card"><div class="suggestion-title">${t('周一 - 技术训练')}</div><ul class="suggestion-list"><li>${t('投篮手型固定练习 (30分钟)')}</li><li>${t('弱手运球强化 (20分钟)')}</li><li>${t('传球准确性训练 (20分钟)')}</li></ul></div>
+    <div class="suggestion-card"><div class="suggestion-title">${t('周二 - 体能训练')}</div><ul class="suggestion-list"><li>${t('爆发力维持训练 (30分钟)')}</li><li>${t('速度保持训练 (20分钟)')}</li><li>${t('核心力量训练 (20分钟)')}</li></ul></div>
+    <div class="suggestion-card"><div class="suggestion-title">${t('周三 - 技术训练')}</div><ul class="suggestion-list"><li>${t('运球后投篮练习 (30分钟)')}</li><li>${t('防守脚步训练 (20分钟)')}</li><li>${t('接球投篮练习 (20分钟)')}</li></ul></div>
+    <div class="suggestion-card"><div class="suggestion-title">${t('周四 - 休息/恢复')}</div><ul class="suggestion-list"><li>${t('轻度拉伸 (15分钟)')}</li><li>${t('营养补充重点')}</li></ul></div>
+    <div class="suggestion-card"><div class="suggestion-title">${t('周五 - 综合训练')}</div><ul class="suggestion-list"><li>${t('2对2小场比赛 (40分钟)')}</li><li>${t('快攻配合练习 (20分钟)')}</li><li>${t('投篮比赛 (20分钟)')}</li></ul></div>
+    <div class="suggestion-card"><div class="suggestion-title">${t('周六 - 比赛日')}</div><ul class="suggestion-list"><li>${t('正式比赛或模拟比赛')}</li><li>${t('赛后总结分析')}</li></ul></div>
+    <div class="suggestion-card"><div class="suggestion-title">${t('周日 - 休息')}</div><ul class="suggestion-list"><li>${t('完全休息或轻度活动')}</li></ul></div>
   `;
 }
 
