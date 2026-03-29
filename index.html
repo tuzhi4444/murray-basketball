@@ -3474,10 +3474,12 @@ function applyTranslations(root = document.body) {
 
 async function applyRuntimeTranslations(root = document.body) {
   if (!root || currentLang === 'zh') return;
+  if (root.dataset.runtimeTranslated === currentLang) return;
   const texts = collectChineseTexts(root);
   if (!texts.length) return;
   await translateTextsWithAPI(texts, currentLang);
   applyTranslations(root);
+  root.dataset.runtimeTranslated = currentLang;
 }
 
 function getActivePageId() {
@@ -4851,7 +4853,7 @@ window.onload = async function() {
   updateVideoTable();
   updateMilestoneList();
   applyTranslations(document.body);
-  await applyRuntimeTranslations(document.querySelector('.page.active'));
+  await applyRuntimeTranslations(document.body);
   if (initialPageId !== 'dashboard' && document.getElementById(initialPageId)) {
     showPage(initialPageId);
   }
