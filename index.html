@@ -33,6 +33,9 @@ body { font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif; background: va
 .header-title { color: var(--text-muted); font-size: 14px; }
 .header-actions { display: flex; align-items: center; gap: 12px; }
 .header-select { padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border); font-size: 13px; background: var(--surface); color: var(--text); }
+.language-switcher { display: inline-flex; align-items: center; gap: 6px; padding: 4px; background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; }
+.language-link { padding: 6px 10px; border-radius: 8px; color: var(--text-muted); text-decoration: none; font-size: 13px; font-weight: 600; }
+.language-link.active { background: var(--primary); color: #fff; }
 .mobile-nav { display: none; background: var(--surface); border-bottom: 1px solid var(--border); padding: 12px 16px; }
 .mobile-nav-label { display: block; font-size: 12px; font-weight: 600; color: var(--text-muted); margin-bottom: 8px; }
 .mobile-nav-select { width: 100%; padding: 12px 14px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface2); font-size: 14px; color: var(--text); }
@@ -188,11 +191,11 @@ tr:hover td { background: var(--surface2); }
       <span>Murray Tang 专业篮球训练系统 v2.0</span>
     </div>
     <div class="header-actions">
-      <select id="languageSelector" class="header-select" onchange="setLanguage(this.value)">
-        <option value="zh">中文</option>
-        <option value="en">English</option>
-        <option value="pt">Português</option>
-      </select>
+      <div id="languageSwitcher" class="language-switcher">
+        <a id="langLinkZh" class="language-link" href="?lang=zh#dashboard">中文</a>
+        <a id="langLinkEn" class="language-link" href="?lang=en#dashboard">English</a>
+        <a id="langLinkPt" class="language-link" href="?lang=pt#dashboard">Português</a>
+      </div>
       <select id="ageGroupSelector" class="header-select" onchange="changeAgeGroup()">
         <option value="10-11">10-11岁 基础期</option>
         <option value="12-13">12-13岁 发展期</option>
@@ -3333,6 +3336,21 @@ function updateAgeGroupSelectorLabels() {
   });
 }
 
+function updateLanguageLinks() {
+  const activePageId = getActivePageId();
+  const links = [
+    { id: 'langLinkZh', lang: 'zh' },
+    { id: 'langLinkEn', lang: 'en' },
+    { id: 'langLinkPt', lang: 'pt' }
+  ];
+  links.forEach(({ id, lang }) => {
+    const link = document.getElementById(id);
+    if (!link) return;
+    link.href = `?lang=${lang}#${activePageId}`;
+    link.classList.toggle('active', currentLang === lang);
+  });
+}
+
 function translateTextNode(node) {
   if (!node || !node.textContent) return;
   const original = node._originalText ?? node.textContent;
@@ -3381,6 +3399,7 @@ function applyTranslations(root = document.body) {
   });
 
   updateAgeGroupSelectorLabels();
+  updateLanguageLinks();
   isApplyingTranslations = false;
 }
 
@@ -3391,8 +3410,6 @@ function getActivePageId() {
 function setLanguage(lang) {
   currentLang = ['zh', 'en', 'pt'].includes(lang) ? lang : 'zh';
   localStorage.setItem('murray_lang', currentLang);
-  const languageSelector = document.getElementById('languageSelector');
-  if (languageSelector) languageSelector.value = currentLang;
 
   const url = new URL(window.location.href);
   url.searchParams.set('lang', currentLang);
@@ -4743,8 +4760,6 @@ window.onload = function() {
   document.getElementById('ageGroupSelector').value = currentAgeGroup;
   const urlLang = new URL(window.location.href).searchParams.get('lang');
   currentLang = ['zh', 'en', 'pt'].includes(urlLang) ? urlLang : (localStorage.getItem('murray_lang') || 'zh');
-  const languageSelector = document.getElementById('languageSelector');
-  if (languageSelector) languageSelector.value = currentLang;
   const initialPageId = window.location.hash ? window.location.hash.replace('#', '') : 'dashboard';
   syncPageSelectors(initialPageId);
   
@@ -4762,11 +4777,6 @@ window.onload = function() {
     applyTranslations(document.body);
   });
   translationObserver.observe(document.body, { childList: true, subtree: true });
-
-  if (languageSelector) {
-    languageSelector.addEventListener('change', event => setLanguage(event.target.value));
-    languageSelector.addEventListener('input', event => setLanguage(event.target.value));
-  }
   
   // 自动检查预警
   setTimeout(checkAllAlerts, 1000);
