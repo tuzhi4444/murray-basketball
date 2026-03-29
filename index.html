@@ -32,6 +32,7 @@ body { font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif; background: va
 .header-logo .ball { font-size: 28px; }
 .header-title { color: var(--text-muted); font-size: 14px; }
 .header-actions { display: flex; align-items: center; gap: 12px; }
+.header-select { padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border); font-size: 13px; background: var(--surface); color: var(--text); }
 .mobile-nav { display: none; background: var(--surface); border-bottom: 1px solid var(--border); padding: 12px 16px; }
 .mobile-nav-label { display: block; font-size: 12px; font-weight: 600; color: var(--text-muted); margin-bottom: 8px; }
 .mobile-nav-select { width: 100%; padding: 12px 14px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface2); font-size: 14px; color: var(--text); }
@@ -187,7 +188,12 @@ tr:hover td { background: var(--surface2); }
       <span>Murray Tang 专业篮球训练系统 v2.0</span>
     </div>
     <div class="header-actions">
-      <select id="ageGroupSelector" onchange="changeAgeGroup()" style="padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border); font-size: 13px;">
+      <select id="languageSelector" class="header-select" onchange="setLanguage(this.value)">
+        <option value="zh">中文</option>
+        <option value="en">English</option>
+        <option value="pt">Português</option>
+      </select>
+      <select id="ageGroupSelector" class="header-select" onchange="changeAgeGroup()">
         <option value="10-11">10-11岁 基础期</option>
         <option value="12-13">12-13岁 发展期</option>
         <option value="14-15">14-15岁 强化期</option>
@@ -2915,6 +2921,374 @@ const dataStore = {
   training: JSON.parse(localStorage.getItem('murray_training') || '[]')
 };
 
+const translations = {
+  en: {
+    'Murray Tang 专业篮球训练系统 v2.0': 'Murray Tang Professional Basketball Training System v2.0',
+    '基于NBA/欧洲/中国标准': 'Based on NBA / Europe / China standards',
+    '手机快速导航': 'Mobile quick navigation',
+    '概览': 'Overview',
+    '身体数据': 'Body Data',
+    '体能测试': 'Physical Tests',
+    '技术数据': 'Skill Data',
+    '综合评估': 'Overall Assessment',
+    '工具': 'Tools',
+    '计划': 'Plan',
+    '总览面板': 'Dashboard',
+    '收集日程': 'Schedule',
+    '操作指南': 'Guide',
+    '智能分析': 'Analysis',
+    '科学依据': 'Science',
+    '报告导出': 'Reports',
+    '身体测量': 'Anthropometrics',
+    '生长发育': 'Growth',
+    '身体成分': 'Body Composition',
+    '爆发力': 'Power',
+    '速度': 'Speed',
+    '敏捷性': 'Agility',
+    '耐力': 'Endurance',
+    '力量': 'Strength',
+    '技术': 'Technique',
+    '投篮': 'Shooting',
+    '运球': 'Dribbling',
+    '传球': 'Passing',
+    '防守': 'Defense',
+    '比赛表现': 'Game Performance',
+    '认知决策': 'Cognitive Decision',
+    '心理评估': 'Psychology',
+    '营养恢复': 'Nutrition & Recovery',
+    '伤病监测': 'Injury Monitoring',
+    '训练负荷': 'Training Load',
+    '成长预警': 'Growth Alerts',
+    '对比分析': 'Comparison',
+    '视频档案': 'Video Archive',
+    '里程碑': 'Milestones',
+    '训练计划': 'Training Plan',
+    '10-11岁 基础期': 'Ages 10-11 Foundation',
+    '12-13岁 发展期': 'Ages 12-13 Development',
+    '14-15岁 强化期': 'Ages 14-15 Intensification',
+    '16岁 精英期': 'Age 16 Elite',
+    '爆发力优秀': 'Excellent power',
+    '速度优秀': 'Excellent speed',
+    '身高需监测': 'Height should be monitored',
+    '身高 (cm)': 'Height (cm)',
+    '助跑纵跳 (cm)': 'Approach vertical jump (cm)',
+    '20米冲刺 (秒)': '20m sprint (s)',
+    'FMS总分': 'FMS total',
+    'Yo-Yo级别': 'Yo-Yo level',
+    '睡眠评分': 'Sleep score',
+    '同龄基准': 'Age benchmark',
+    '-5.5cm vs基准': '-5.5 cm vs benchmark',
+    '+69% vs基准': '+69% vs benchmark',
+    '+10% vs基准': '+10% vs benchmark',
+    '待测试': 'Pending',
+    '待记录': 'Pending',
+    '能力雷达图': 'Performance radar',
+    '优先关注事项': 'Priority focus',
+    '高优先级': 'High priority',
+    '中优先级': 'Medium priority',
+    '完成FMS功能性动作筛查（预防伤病）': 'Complete the FMS screening to help prevent injuries',
+    '补充投篮热图数据（5个点位命中率）': 'Add shooting heatmap data for 5 spots',
+    '进行Yo-Yo间歇恢复测试': 'Run the Yo-Yo intermittent recovery test',
+    '建立每日睡眠和恢复监测': 'Build a daily sleep and recovery routine',
+    '记录T型跑和5-10-5折返跑数据': 'Record T-test and 5-10-5 shuttle results',
+    '完成传球决策速度测试': 'Complete the passing decision-speed test',
+    '建立营养摄入记录习惯': 'Build a habit of logging nutrition intake',
+    '系统提示：': 'System note:',
+    '基于NBA、欧洲和中国篮球标准，建议优先完善FMS筛查、投篮热图和Yo-Yo耐力测试数据。': 'Based on NBA, European, and Chinese standards, prioritize FMS screening, shooting heatmap data, and Yo-Yo endurance testing.',
+    '待完成测试项目：': 'Pending test items:',
+    '当前无异常预警': 'No active alerts',
+    '所有指标发展正常，继续保持！': 'All indicators look normal. Keep it up.',
+    '基础投篮': 'Basic shooting',
+    '投篮热图': 'Shooting heatmap',
+    '生物力学': 'Biomechanics',
+    '每日记录': 'Daily log',
+    '周汇总': 'Weekly summary',
+    'NBA标准': 'NBA standard',
+    '中国标准': 'China standard',
+    '精英球员': 'Elite players',
+    '身体测量数据录入': 'Anthropometric data entry',
+    '生长发育监测': 'Growth monitoring',
+    '身体成分数据': 'Body composition data',
+    '身体成分趋势': 'Body composition trend',
+    '爆发力测试 (NBA Combine标准)': 'Power test (NBA Combine standard)',
+    '爆发力对比分析': 'Power comparison',
+    '速度测试': 'Speed test',
+    '速度发展趋势': 'Speed trend',
+    '20米冲刺 (秒×10)': '20m sprint (s×10)',
+    'Murray身高': 'Murray height',
+    'WHO P50标准': 'WHO P50 standard',
+    '原地纵跳': 'Standing vertical jump',
+    '立定跳远': 'Standing broad jump',
+    '俯卧撑': 'Push-ups',
+    '引体向上': 'Pull-ups',
+    '深蹲': 'Squat',
+    '全场运球': 'Full-court dribble',
+    '变向运球': 'Change-of-direction dribble',
+    'T测试': 'T-test',
+    '胸前传球': 'Chest pass',
+    '击地传球': 'Bounce pass',
+    '单手长传': 'One-hand long pass',
+    '传球决策': 'Passing decision',
+    '滑步移动': 'Slide movement',
+    '防守站位': 'Defensive positioning',
+    '抢断': 'Steals',
+    '篮板卡位': 'Box out',
+    '决策速度': 'Decision speed',
+    '空间感知': 'Spatial awareness',
+    '战术理解': 'Tactical understanding',
+    '注意力': 'Attention',
+    '自信心': 'Confidence',
+    '抗压能力': 'Pressure tolerance',
+    '专注力': 'Focus',
+    '团队意识': 'Team awareness',
+    '20米冲刺': '20m sprint',
+    '折返跑': 'Shuttle run',
+    '敏捷性测试': 'Agility test',
+    '敏捷性分析': 'Agility analysis',
+    '耐力测试': 'Endurance test',
+    '耐力发展': 'Endurance development',
+    '力量测试': 'Strength test',
+    '力量发展': 'Strength development',
+    '基础投篮测试': 'Basic shooting test',
+    '投篮热图数据': 'Shooting heatmap data',
+    '投篮热图可视化': 'Shooting heatmap visualization',
+    '投篮生物力学指标': 'Shooting biomechanics metrics',
+    '投篮发展趋势': 'Shooting trend',
+    '运球能力测试': 'Dribbling test',
+    '运球能力分析': 'Dribbling analysis',
+    '传球能力测试': 'Passing test',
+    '传球能力分析': 'Passing analysis',
+    '防守能力测试': 'Defense test',
+    '防守能力分析': 'Defense analysis',
+    '比赛表现数据': 'Game performance data',
+    '认知决策能力测试': 'Cognitive decision test',
+    '训练负荷监测': 'Training load monitoring',
+    'AI智能分析报告': 'AI analysis report',
+    '成长预警系统': 'Growth alert system',
+    '技术视频档案': 'Technical video archive',
+    '记录技术进步轨迹，每年对比分析': 'Track technical progress and review it year by year',
+    '里程碑与成就': 'Milestones and achievements',
+    '预设里程碑': 'Preset milestones',
+    '数据收集日程表': 'Data collection schedule',
+    '数据收集操作指南': 'Data collection guide',
+    '本周训练计划': 'Weekly training plan',
+    '数据指标科学依据': 'Scientific basis of the metrics',
+    '暂无已达成里程碑': 'No completed milestones yet',
+    '请输入里程碑名称': 'Please enter a milestone name',
+    '自定义里程碑已添加！': 'Custom milestone added!',
+    '投篮动作': 'Shooting form',
+    '运球技术': 'Dribbling technique',
+    '防守动作': 'Defense movement',
+    '比赛片段': 'Game clips',
+    '其他': 'Other',
+    '训练负荷过高': 'Training load too high',
+    '本周训练负荷': 'This week training load',
+    '确定要清空所有数据吗？此操作不可恢复！': 'Are you sure you want to clear all data? This cannot be undone.',
+    '所有数据已清空': 'All data has been cleared.',
+    '请输入数据': 'Please enter data.',
+    '数据导入成功！': 'Data imported successfully!',
+    '数据格式错误：': 'Invalid data format: ',
+    '同步码已生成：': 'Sync code generated: ',
+    '请在其他设备上输入此代码进行同步（24小时内有效）': 'Enter this code on the other device to sync (valid for 24 hours).',
+    '请输入4位同步码': 'Please enter a 4-character sync code.',
+    '同步码无效或已过期，请重新生成': 'The sync code is invalid or expired. Please generate a new one.',
+    '同步码已过期，请重新生成': 'The sync code has expired. Please generate a new one.',
+    '确定要同步数据吗？这将合并当前设备的数据。': 'Do you want to sync data? This will merge the data on the current device.',
+    '同步成功！数据已更新': 'Sync completed. Data updated.',
+    '周报已复制到剪贴板，请粘贴到微信发送！': 'The weekly report has been copied to the clipboard. Paste it into WeChat to send.',
+    '请复制以下内容分享：': 'Please copy the following content to share:',
+    '请选择拍摄日期': 'Please select a recording date.',
+    '视频记录已保存！': 'Video record saved!'
+  },
+  pt: {
+    'Murray Tang 专业篮球训练系统 v2.0': 'Sistema Profissional de Treino de Basquetebol Murray Tang v2.0',
+    '基于NBA/欧洲/中国标准': 'Baseado nos padrões NBA / Europa / China',
+    '手机快速导航': 'Navegação rápida no telemóvel',
+    '概览': 'Visão geral',
+    '身体数据': 'Dados corporais',
+    '体能测试': 'Testes físicos',
+    '技术数据': 'Dados técnicos',
+    '综合评估': 'Avaliação global',
+    '工具': 'Ferramentas',
+    '计划': 'Plano',
+    '总览面板': 'Painel geral',
+    '收集日程': 'Agenda',
+    '操作指南': 'Guia',
+    '智能分析': 'Análise',
+    '科学依据': 'Base científica',
+    '报告导出': 'Relatórios',
+    '身体测量': 'Antropometria',
+    '生长发育': 'Crescimento',
+    '身体成分': 'Composição corporal',
+    '爆发力': 'Potência',
+    '速度': 'Velocidade',
+    '敏捷性': 'Agilidade',
+    '耐力': 'Resistência',
+    '力量': 'Força',
+    '技术': 'Técnica',
+    '投篮': 'Lançamento',
+    '运球': 'Drible',
+    '传球': 'Passe',
+    '防守': 'Defesa',
+    '比赛表现': 'Desempenho em jogo',
+    '认知决策': 'Decisão cognitiva',
+    '心理评估': 'Psicologia',
+    '营养恢复': 'Nutrição e recuperação',
+    '伤病监测': 'Monitorização de lesões',
+    '训练负荷': 'Carga de treino',
+    '成长预警': 'Alertas de crescimento',
+    '对比分析': 'Comparação',
+    '视频档案': 'Arquivo de vídeos',
+    '里程碑': 'Marcos',
+    '训练计划': 'Plano de treino',
+    '10-11岁 基础期': '10-11 anos Base',
+    '12-13岁 发展期': '12-13 anos Desenvolvimento',
+    '14-15岁 强化期': '14-15 anos Intensificação',
+    '16岁 精英期': '16 anos Elite',
+    '爆发力优秀': 'Potência excelente',
+    '速度优秀': 'Velocidade excelente',
+    '身高需监测': 'Altura deve ser monitorizada',
+    '身高 (cm)': 'Altura (cm)',
+    '助跑纵跳 (cm)': 'Salto vertical com corrida (cm)',
+    '20米冲刺 (秒)': 'Sprint 20 m (s)',
+    'FMS总分': 'Pontuação FMS',
+    'Yo-Yo级别': 'Nível Yo-Yo',
+    '睡眠评分': 'Pontuação do sono',
+    '同龄基准': 'Referência da mesma idade',
+    '-5.5cm vs基准': '-5,5 cm vs referência',
+    '+69% vs基准': '+69% vs referência',
+    '+10% vs基准': '+10% vs referência',
+    '待测试': 'Pendente',
+    '待记录': 'Pendente',
+    '能力雷达图': 'Radar de desempenho',
+    '优先关注事项': 'Pontos prioritários',
+    '高优先级': 'Alta prioridade',
+    '中优先级': 'Prioridade média',
+    '完成FMS功能性动作筛查（预防伤病）': 'Concluir o rastreio FMS para ajudar a prevenir lesões',
+    '补充投篮热图数据（5个点位命中率）': 'Adicionar dados do mapa de lançamento em 5 zonas',
+    '进行Yo-Yo间歇恢复测试': 'Realizar o teste Yo-Yo de recuperação intermitente',
+    '建立每日睡眠和恢复监测': 'Criar rotina diária de sono e recuperação',
+    '记录T型跑和5-10-5折返跑数据': 'Registar os resultados do teste T e do 5-10-5',
+    '完成传球决策速度测试': 'Concluir o teste de velocidade de decisão no passe',
+    '建立营养摄入记录习惯': 'Criar o hábito de registar a ingestão nutricional',
+    '系统提示：': 'Nota do sistema:',
+    '基于NBA、欧洲和中国篮球标准，建议优先完善FMS筛查、投篮热图和Yo-Yo耐力测试数据。': 'Com base nos padrões da NBA, Europa e China, priorize o FMS, o mapa de lançamento e o teste Yo-Yo.',
+    '待完成测试项目：': 'Testes pendentes:',
+    '当前无异常预警': 'Sem alertas ativos',
+    '所有指标发展正常，继续保持！': 'Todos os indicadores estão normais. Continue assim.',
+    '基础投篮': 'Lançamento básico',
+    '投篮热图': 'Mapa de lançamento',
+    '生物力学': 'Biomecânica',
+    '每日记录': 'Registo diário',
+    '周汇总': 'Resumo semanal',
+    'NBA标准': 'Padrão NBA',
+    '中国标准': 'Padrão China',
+    '精英球员': 'Jogadores de elite',
+    '身体测量数据录入': 'Introdução de dados antropométricos',
+    '生长发育监测': 'Monitorização do crescimento',
+    '身体成分数据': 'Dados de composição corporal',
+    '身体成分趋势': 'Tendência da composição corporal',
+    '爆发力测试 (NBA Combine标准)': 'Teste de potência (padrão NBA Combine)',
+    '爆发力对比分析': 'Comparação de potência',
+    '速度测试': 'Teste de velocidade',
+    '速度发展趋势': 'Tendência da velocidade',
+    '20米冲刺 (秒×10)': 'Sprint 20 m (s×10)',
+    'Murray身高': 'Altura do Murray',
+    'WHO P50标准': 'Padrão WHO P50',
+    '原地纵跳': 'Salto vertical parado',
+    '立定跳远': 'Salto em comprimento parado',
+    '俯卧撑': 'Flexões',
+    '引体向上': 'Elevações',
+    '深蹲': 'Agachamento',
+    '全场运球': 'Drible em campo inteiro',
+    '变向运球': 'Drible com mudança de direção',
+    'T测试': 'Teste T',
+    '胸前传球': 'Passe de peito',
+    '击地传球': 'Passe picado',
+    '单手长传': 'Passe longo com uma mão',
+    '传球决策': 'Decisão de passe',
+    '滑步移动': 'Deslocamento lateral',
+    '防守站位': 'Posicionamento defensivo',
+    '抢断': 'Roubos de bola',
+    '篮板卡位': 'Bloqueio para ressalto',
+    '决策速度': 'Velocidade de decisão',
+    '空间感知': 'Perceção espacial',
+    '战术理解': 'Compreensão tática',
+    '注意力': 'Atenção',
+    '自信心': 'Confiança',
+    '抗压能力': 'Resistência à pressão',
+    '专注力': 'Concentração',
+    '团队意识': 'Espírito de equipa',
+    '20米冲刺': 'Sprint 20 m',
+    '折返跑': 'Corrida de vaivém',
+    '敏捷性测试': 'Teste de agilidade',
+    '敏捷性分析': 'Análise da agilidade',
+    '耐力测试': 'Teste de resistência',
+    '耐力发展': 'Desenvolvimento da resistência',
+    '力量测试': 'Teste de força',
+    '力量发展': 'Desenvolvimento da força',
+    '基础投篮测试': 'Teste de lançamento básico',
+    '投篮热图数据': 'Dados do mapa de lançamento',
+    '投篮热图可视化': 'Visualização do mapa de lançamento',
+    '投篮生物力学指标': 'Métricas biomecânicas do lançamento',
+    '投篮发展趋势': 'Tendência do lançamento',
+    '运球能力测试': 'Teste de drible',
+    '运球能力分析': 'Análise do drible',
+    '传球能力测试': 'Teste de passe',
+    '传球能力分析': 'Análise do passe',
+    '防守能力测试': 'Teste defensivo',
+    '防守能力分析': 'Análise defensiva',
+    '比赛表现数据': 'Dados de desempenho em jogo',
+    '认知决策能力测试': 'Teste de decisão cognitiva',
+    '训练负荷监测': 'Monitorização da carga de treino',
+    'AI智能分析报告': 'Relatório de análise por IA',
+    '成长预警系统': 'Sistema de alerta de crescimento',
+    '技术视频档案': 'Arquivo técnico de vídeos',
+    '记录技术进步轨迹，每年对比分析': 'Registe o progresso técnico e compare todos os anos',
+    '里程碑与成就': 'Marcos e conquistas',
+    '预设里程碑': 'Marcos predefinidos',
+    '数据收集日程表': 'Calendário de recolha de dados',
+    '数据收集操作指南': 'Guia de recolha de dados',
+    '本周训练计划': 'Plano de treino da semana',
+    '数据指标科学依据': 'Base científica dos indicadores',
+    '暂无已达成里程碑': 'Ainda não há marcos concluídos',
+    '请输入里程碑名称': 'Introduza o nome do marco',
+    '自定义里程碑已添加！': 'Marco personalizado adicionado!',
+    '投篮动作': 'Mecânica de lançamento',
+    '运球技术': 'Técnica de drible',
+    '防守动作': 'Movimento defensivo',
+    '比赛片段': 'Clipes de jogo',
+    '其他': 'Outro',
+    '训练负荷过高': 'Carga de treino elevada',
+    '本周训练负荷': 'Carga de treino desta semana',
+    '确定要清空所有数据吗？此操作不可恢复！': 'Tem a certeza de que quer apagar todos os dados? Esta ação não pode ser desfeita.',
+    '所有数据已清空': 'Todos os dados foram apagados.',
+    '请输入数据': 'Introduza os dados.',
+    '数据导入成功！': 'Dados importados com sucesso!',
+    '数据格式错误：': 'Formato de dados inválido: ',
+    '同步码已生成：': 'Código de sincronização gerado: ',
+    '请在其他设备上输入此代码进行同步（24小时内有效）': 'Introduza este código no outro dispositivo para sincronizar (válido por 24 horas).',
+    '请输入4位同步码': 'Introduza um código de sincronização com 4 caracteres.',
+    '同步码无效或已过期，请重新生成': 'O código é inválido ou expirou. Gere um novo.',
+    '同步码已过期，请重新生成': 'O código expirou. Gere um novo.',
+    '确定要同步数据吗？这将合并当前设备的数据。': 'Pretende sincronizar os dados? Isto irá combinar os dados do dispositivo atual.',
+    '同步成功！数据已更新': 'Sincronização concluída. Dados atualizados.',
+    '周报已复制到剪贴板，请粘贴到微信发送！': 'O relatório semanal foi copiado para a área de transferência. Cole no WeChat para enviar.',
+    '请复制以下内容分享：': 'Copie o seguinte conteúdo para partilhar:',
+    '请选择拍摄日期': 'Selecione a data da gravação.',
+    '视频记录已保存！': 'Registo de vídeo guardado!'
+  }
+};
+
+let currentLang = 'zh';
+let translationObserver = null;
+let isApplyingTranslations = false;
+
+function t(text) {
+  if (currentLang === 'zh') return text;
+  return translations[currentLang]?.[text] || text;
+}
+
 // 初始化默认数据
 if (dataStore.anthropometric.length === 0) {
   dataStore.anthropometric = [{
@@ -2947,6 +3321,86 @@ if (dataStore.endurance.length === 0) {
 
 function saveData(key) {
   localStorage.setItem('murray_' + key, JSON.stringify(dataStore[key]));
+}
+
+function updateAgeGroupSelectorLabels() {
+  const ageGroupSelector = document.getElementById('ageGroupSelector');
+  if (!ageGroupSelector) return;
+  Array.from(ageGroupSelector.options).forEach(option => {
+    const original = option.dataset.originalText || option.textContent;
+    option.dataset.originalText = original;
+    option.textContent = t(original);
+  });
+}
+
+function translateTextNode(node) {
+  if (!node || !node.textContent) return;
+  const original = node._originalText ?? node.textContent;
+  node._originalText = original;
+  const trimmed = original.trim();
+  if (!trimmed) return;
+  const translated = t(trimmed);
+  if (translated === trimmed) {
+    node.textContent = original;
+    return;
+  }
+  node.textContent = original.replace(trimmed, translated);
+}
+
+function applyTranslations(root = document.body) {
+  if (!root) return;
+  isApplyingTranslations = true;
+  document.title = t('Murray Tang 专业篮球训练系统 v2.0');
+  document.documentElement.lang = currentLang === 'zh' ? 'zh-CN' : currentLang;
+
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+    acceptNode(node) {
+      if (!node.parentElement) return NodeFilter.FILTER_REJECT;
+      const tagName = node.parentElement.tagName;
+      if (['SCRIPT', 'STYLE'].includes(tagName)) return NodeFilter.FILTER_REJECT;
+      if (!node.textContent.trim()) return NodeFilter.FILTER_REJECT;
+      return NodeFilter.FILTER_ACCEPT;
+    }
+  });
+
+  const textNodes = [];
+  while (walker.nextNode()) textNodes.push(walker.currentNode);
+  textNodes.forEach(translateTextNode);
+
+  root.querySelectorAll('input[placeholder], textarea[placeholder], option').forEach(el => {
+    if (el.hasAttribute('placeholder')) {
+      const originalPlaceholder = el.dataset.originalPlaceholder || el.getAttribute('placeholder');
+      el.dataset.originalPlaceholder = originalPlaceholder;
+      el.setAttribute('placeholder', t(originalPlaceholder));
+    }
+    if (el.tagName === 'OPTION') {
+      const originalText = el.dataset.originalText || el.textContent;
+      el.dataset.originalText = originalText;
+      el.textContent = t(originalText);
+    }
+  });
+
+  updateAgeGroupSelectorLabels();
+  isApplyingTranslations = false;
+}
+
+function getActivePageId() {
+  return document.querySelector('.page.active')?.id || 'dashboard';
+}
+
+function setLanguage(lang) {
+  currentLang = ['zh', 'en', 'pt'].includes(lang) ? lang : 'zh';
+  localStorage.setItem('murray_lang', currentLang);
+  const languageSelector = document.getElementById('languageSelector');
+  if (languageSelector) languageSelector.value = currentLang;
+
+  const url = new URL(window.location.href);
+  url.searchParams.set('lang', currentLang);
+  window.history.replaceState({}, '', url);
+
+  const activePageId = getActivePageId();
+  showPage(activePageId);
+  applyTranslations(document.body);
 }
 
 function syncPageSelectors(pageId) {
@@ -2987,6 +3441,7 @@ function showPage(pageId, evt) {
   if (pageId === 'analysis') updateAnalysis();
   if (pageId === 'reports') updateCompleteness();
   if (pageId === 'training') updateWeeklyPlan();
+  applyTranslations(document.body);
 }
 
 // 子标签切换
@@ -3076,7 +3531,7 @@ function updateRadarChart() {
   charts.radar = new Chart(ctx, {
     type: 'radar',
     data: {
-      labels: ['爆发力', '速度', '耐力', '投篮', 'FMS', '技术'],
+      labels: [t('爆发力'), t('速度'), t('耐力'), t('投篮'), 'FMS', t('技术')],
       datasets: [{
         label: 'Murray Tang',
         data: [jumpScore, speedScore, enduranceScore, shootingScore, fmsScore, 60],
@@ -3084,7 +3539,7 @@ function updateRadarChart() {
         borderColor: 'rgba(249, 115, 22, 1)',
         borderWidth: 2
       }, {
-        label: '同龄基准',
+        label: t('同龄基准'),
         data: [50, 50, 50, 60, 65, 55],
         backgroundColor: 'rgba(148, 163, 184, 0.1)',
         borderColor: 'rgba(148, 163, 184, 0.5)',
@@ -3110,12 +3565,12 @@ function updateTrendChart() {
     data: {
       labels: dataStore.power.map(d => d.date),
       datasets: [{
-        label: '助跑纵跳 (cm)',
+        label: t('助跑纵跳 (cm)'),
         data: dataStore.power.map(d => d.maxVert),
         borderColor: 'rgba(249, 115, 22, 1)',
         tension: 0.3
       }, {
-        label: '20米冲刺 (秒×10)',
+        label: t('20米冲刺 (秒×10)'),
         data: dataStore.speed.map(d => d.sprint20m ? d.sprint20m * 10 : null),
         borderColor: 'rgba(37, 99, 235, 1)',
         tension: 0.3
@@ -3395,7 +3850,7 @@ function saveVideoRecord() {
   const link = document.getElementById('videoLink')?.value;
   const comment = document.getElementById('videoComment')?.value;
   
-  if (!date) return alert('请选择拍摄日期');
+  if (!date) return alert(t('请选择拍摄日期'));
   
   const typeMap = { shooting: '投篮动作', dribbling: '运球技术', defense: '防守动作', game: '比赛片段', other: '其他' };
   
@@ -3409,7 +3864,7 @@ function saveVideoRecord() {
   });
   saveData('videos');
   updateVideoTable();
-  alert('视频记录已保存！');
+  alert(t('视频记录已保存！'));
 }
 
 function updateVideoTable() {
@@ -3455,7 +3910,7 @@ function checkMilestone(id) {
 
 function addCustomMilestone() {
   const name = document.getElementById('customMilestone')?.value;
-  if (!name) return alert('请输入里程碑名称');
+  if (!name) return alert(t('请输入里程碑名称'));
   
   dataStore.milestones.push({
     id: Date.now(),
@@ -3466,7 +3921,7 @@ function addCustomMilestone() {
   saveData('milestones');
   updateMilestoneList();
   document.getElementById('customMilestone').value = '';
-  alert('自定义里程碑已添加！');
+  alert(t('自定义里程碑已添加！'));
 }
 
 function updateMilestoneList() {
@@ -3511,14 +3966,14 @@ function updateGrowthChart() {
     data: {
       labels: data.map(d => d.date),
       datasets: [{
-        label: 'Murray身高',
+        label: t('Murray身高'),
         data: data.map(d => d.height),
         borderColor: '#f97316',
         backgroundColor: 'rgba(249,115,22,0.1)',
         fill: true,
         tension: 0.4
       }, {
-        label: 'WHO P50标准',
+        label: t('WHO P50标准'),
         data: whoP50,
         borderColor: '#64748b',
         borderDash: [5,5],
@@ -3571,7 +4026,7 @@ function updatePowerChart() {
   charts.power = new Chart(ctx, {
     type: 'bar',
     data: {
-      labels: ['原地纵跳', '助跑纵跳', '立定跳远'],
+      labels: [t('原地纵跳'), t('助跑纵跳'), t('立定跳远')],
       datasets: [{
         label: '当前',
         data: [
@@ -3651,7 +4106,7 @@ function updateStrengthChart() {
   charts.strength = new Chart(ctx, {
     type: 'bar',
     data: {
-      labels: ['俯卧撑', '引体向上', '深蹲'],
+      labels: [t('俯卧撑'), t('引体向上'), t('深蹲')],
       datasets: [{
         label: '次数',
         data: [
@@ -3695,7 +4150,7 @@ function updateDribblingChart() {
   charts.dribbling = new Chart(ctx, {
     type: 'bar',
     data: {
-      labels: ['全场运球', '变向运球', 'T测试'],
+      labels: [t('全场运球'), t('变向运球'), t('T测试')],
       datasets: [{
         label: '时间(秒)',
         data: [
@@ -3717,7 +4172,7 @@ function updatePassingChart() {
   charts.passing = new Chart(ctx, {
     type: 'radar',
     data: {
-      labels: ['胸前传球', '击地传球', '单手长传', '传球决策'],
+      labels: [t('胸前传球'), t('击地传球'), t('单手长传'), t('传球决策')],
       datasets: [{
         label: '评分',
         data: [
@@ -3741,7 +4196,7 @@ function updateDefenseChart() {
   charts.defense = new Chart(ctx, {
     type: 'radar',
     data: {
-      labels: ['滑步移动', '防守站位', '抢断', '篮板卡位'],
+      labels: [t('滑步移动'), t('防守站位'), t('抢断'), t('篮板卡位')],
       datasets: [{
         label: '评分',
         data: [
@@ -3791,7 +4246,7 @@ function updateCognitiveChart() {
   charts.cognitive = new Chart(ctx, {
     type: 'radar',
     data: {
-      labels: ['决策速度', '空间感知', '战术理解', '注意力'],
+      labels: [t('决策速度'), t('空间感知'), t('战术理解'), t('注意力')],
       datasets: [{
         label: '认知能力',
         data: [
@@ -3815,7 +4270,7 @@ function updatePsychChart() {
   charts.psych = new Chart(ctx, {
     type: 'radar',
     data: {
-      labels: ['自信心', '抗压能力', '专注力', '团队意识'],
+      labels: [t('自信心'), t('抗压能力'), t('专注力'), t('团队意识')],
       datasets: [{
         label: '心理状态',
         data: [
@@ -3863,7 +4318,7 @@ function updateLoadChart() {
     data: {
       labels: dataStore.load.map(d => d.date).slice(-14),
       datasets: [{
-        label: '训练负荷',
+        label: t('训练负荷'),
         data: dataStore.load.map(d => d.duration * (d.rpe || 5)).slice(-14),
         borderColor: '#f97316',
         fill: true,
@@ -3883,7 +4338,7 @@ function updateAnalysis() {
     charts.benchmark = new Chart(benchmarkCtx, {
       type: 'bar',
       data: {
-        labels: ['原地纵跳', '助跑纵跳', '20米冲刺', '折返跑'],
+        labels: [t('原地纵跳'), t('助跑纵跳'), t('20米冲刺'), t('折返跑')],
         datasets: [{
           label: 'Murray',
           data: [power.sj || 0, power.maxVert || 0, power.sprint20m ? (5 - power.sprint20m) * 10 : 0, 80],
@@ -3949,19 +4404,19 @@ function generateReport() {
 }
 
 function clearAllData() {
-  if (confirm('确定要清空所有数据吗？此操作不可恢复！')) {
+  if (confirm(t('确定要清空所有数据吗？此操作不可恢复！'))) {
     Object.keys(dataStore).forEach(key => {
       dataStore[key] = [];
       localStorage.removeItem('murray_' + key);
     });
-    alert('所有数据已清空');
+    alert(t('所有数据已清空'));
     location.reload();
   }
 }
 
 function importData() {
   const data = document.getElementById('importData')?.value;
-  if (!data) return alert('请输入数据');
+  if (!data) return alert(t('请输入数据'));
   try {
     const parsed = JSON.parse(data);
     Object.keys(parsed).forEach(key => {
@@ -3970,10 +4425,10 @@ function importData() {
         saveData(key);
       }
     });
-    alert('数据导入成功！');
+    alert(t('数据导入成功！'));
     location.reload();
   } catch (e) {
-    alert('数据格式错误：' + e.message);
+    alert(t('数据格式错误：') + e.message);
   }
 }
 
@@ -3994,7 +4449,7 @@ function generateSyncCode() {
   localStorage.setItem('murray_sync_' + code, JSON.stringify(syncData));
   
   // 显示提示
-  alert('同步码已生成：' + code + '\n请在其他设备上输入此代码进行同步（24小时内有效）');
+  alert(t('同步码已生成：') + code + '\n' + t('请在其他设备上输入此代码进行同步（24小时内有效）'));
 }
 
 function showSyncInput() {
@@ -4005,27 +4460,27 @@ function showSyncInput() {
 function syncWithCode() {
   const code = document.getElementById('inputSyncCode').value.toUpperCase();
   if (code.length !== 4) {
-    alert('请输入4位同步码');
+    alert(t('请输入4位同步码'));
     return;
   }
   
   const syncItem = localStorage.getItem('murray_sync_' + code);
   if (!syncItem) {
-    alert('同步码无效或已过期，请重新生成');
+    alert(t('同步码无效或已过期，请重新生成'));
     return;
   }
   
   const syncData = JSON.parse(syncItem);
   if (Date.now() > syncData.expires) {
-    alert('同步码已过期，请重新生成');
+    alert(t('同步码已过期，请重新生成'));
     localStorage.removeItem('murray_sync_' + code);
     return;
   }
   
-  if (confirm('确定要同步数据吗？这将合并当前设备的数据。')) {
+  if (confirm(t('确定要同步数据吗？这将合并当前设备的数据。'))) {
     // 合并数据
     mergeData(syncData.data);
-    alert('同步成功！数据已更新');
+    alert(t('同步成功！数据已更新'));
     location.reload();
   }
 }
@@ -4056,9 +4511,9 @@ function mergeData(remoteData) {
 function shareToWeChat() {
   const summary = generateWeeklySummary();
   navigator.clipboard.writeText(summary).then(() => {
-    alert('周报已复制到剪贴板，请粘贴到微信发送！\n\n' + summary.substring(0, 100) + '...');
+    alert(t('周报已复制到剪贴板，请粘贴到微信发送！') + '\n\n' + summary.substring(0, 100) + '...');
   }).catch(() => {
-    prompt('请复制以下内容分享：', summary);
+    prompt(t('请复制以下内容分享：'), summary);
   });
 }
 
@@ -4288,12 +4743,23 @@ window.onload = function() {
   
   // 设置年龄段选择器
   document.getElementById('ageGroupSelector').value = currentAgeGroup;
+  const urlLang = new URL(window.location.href).searchParams.get('lang');
+  currentLang = ['zh', 'en', 'pt'].includes(urlLang) ? urlLang : (localStorage.getItem('murray_lang') || 'zh');
+  const languageSelector = document.getElementById('languageSelector');
+  if (languageSelector) languageSelector.value = currentLang;
   syncPageSelectors('dashboard');
   
   updateDashboard();
   updateSchedulePage();
   updateVideoTable();
   updateMilestoneList();
+  applyTranslations(document.body);
+
+  translationObserver = new MutationObserver(() => {
+    if (isApplyingTranslations) return;
+    applyTranslations(document.body);
+  });
+  translationObserver.observe(document.body, { childList: true, subtree: true });
   
   // 自动检查预警
   setTimeout(checkAllAlerts, 1000);
