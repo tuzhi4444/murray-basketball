@@ -119,6 +119,54 @@ tr:hover td { background: var(--surface2); }
 .priority-medium { border-left: 4px solid var(--yellow); }
 .priority-low { border-left: 4px solid var(--green); }
 
+.training-tabs { display: flex; gap: 8px; margin: 18px 0; overflow-x: auto; padding-bottom: 4px; }
+.training-tabs::-webkit-scrollbar { display: none; }
+.training-tab { border: 1px solid var(--border); background: var(--surface2); color: var(--text-muted); border-radius: 12px; padding: 10px 14px; min-width: 74px; cursor: pointer; font-size: 12px; font-weight: 700; text-align: center; }
+.training-tab.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+.training-tab.rest { background: rgba(37,99,235,.08); color: var(--blue); border-color: rgba(37,99,235,.18); }
+.training-tab.rest.active { background: var(--blue); color: #fff; border-color: var(--blue); }
+.training-tab-day { display: block; font-size: 12px; }
+.training-tab-theme { display: block; font-size: 10px; opacity: .85; margin-top: 4px; white-space: nowrap; }
+.daily-detail { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 20px; }
+.daily-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; }
+.daily-title { font-size: 20px; font-weight: 800; color: var(--text); }
+.daily-subtitle { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+.daily-theme-badge { padding: 6px 14px; border-radius: 999px; font-size: 12px; font-weight: 700; }
+.daily-goals { background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 18px; }
+.daily-goals h4 { font-size: 12px; color: var(--primary); font-weight: 800; margin-bottom: 10px; text-transform: uppercase; letter-spacing: .6px; }
+.goal-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+.goal-list li { position: relative; padding-left: 18px; font-size: 13px; color: var(--text); }
+.goal-list li::before { content: '✓'; position: absolute; left: 0; color: var(--green); font-weight: 700; }
+.timeline { position: relative; padding-left: 22px; }
+.timeline::before { content: ''; position: absolute; left: 7px; top: 8px; bottom: 8px; width: 2px; background: var(--border); border-radius: 1px; }
+.timeline-block { position: relative; margin-bottom: 18px; }
+.timeline-block::before { content: ''; position: absolute; left: -18px; top: 12px; width: 10px; height: 10px; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 0 1px var(--border); }
+.timeline-block.warmup::before { background: #d97706; }
+.timeline-block.skill::before { background: var(--primary); }
+.timeline-block.tech::before { background: var(--purple); }
+.timeline-block.fitness::before { background: var(--green); }
+.timeline-block.core::before { background: var(--blue); }
+.timeline-block.cooldown::before { background: var(--text-muted); }
+.block-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
+.block-time { font-size: 11px; font-weight: 700; color: var(--text-muted); min-width: 96px; background: var(--surface2); padding: 2px 8px; border-radius: 6px; border: 1px solid var(--border); }
+.block-title { font-size: 15px; font-weight: 700; color: var(--text); flex: 1; }
+.block-duration { font-size: 12px; color: var(--text-muted); background: var(--surface2); padding: 3px 10px; border-radius: 999px; border: 1px solid var(--border); }
+.block-content { background: var(--surface2); border-radius: 10px; overflow: hidden; border: 1px solid var(--border); }
+.exercise-row { display: grid; grid-template-columns: 1fr auto auto auto; gap: 10px; align-items: center; padding: 10px 14px; border-bottom: 1px solid var(--border); }
+.exercise-row:last-child { border-bottom: none; }
+.ex-name { font-size: 13px; font-weight: 500; color: var(--text); }
+.ex-detail { font-size: 12px; color: var(--primary); font-weight: 700; white-space: nowrap; }
+.ex-rest { font-size: 11px; color: var(--text-muted); white-space: nowrap; }
+.ex-intensity { width: 8px; height: 8px; border-radius: 50%; }
+.intensity-low { background: var(--green); }
+.intensity-med { background: var(--yellow); }
+.intensity-high { background: var(--primary); }
+.tip-box { background: rgba(249,115,22,.06); border: 1px solid rgba(249,115,22,.18); border-radius: 10px; padding: 13px 16px; font-size: 13px; line-height: 1.6; color: var(--text); margin-top: 16px; }
+.rest-day-box { text-align: center; padding: 44px 20px; background: var(--surface2); border-radius: 12px; border: 1px solid var(--border); }
+.rest-day-box .big-icon { font-size: 52px; margin-bottom: 12px; }
+.rest-day-box h3 { font-size: 20px; font-weight: 800; margin-bottom: 8px; }
+.rest-day-box p { font-size: 13px; color: var(--text-muted); line-height: 1.7; max-width: 420px; margin: 0 auto; }
+
 .alert { padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; font-size: 13px; }
 .alert-warning { background: rgba(234,179,8,.1); border: 1px solid rgba(234,179,8,.3); color: var(--yellow); }
 .alert-danger { background: rgba(239,68,68,.1); border: 1px solid rgba(239,68,68,.3); color: var(--red); }
@@ -3161,6 +3209,45 @@ const translations = {
     '最近7天训练负荷': '7-day training load',
     '最近恢复状态': 'Recent recovery status',
     '最近专项测试': 'Recent skill testing',
+    '今日训练目标': 'Today targets',
+    '预计用时': 'Estimated duration',
+    '热身': 'Warm-up',
+    '球感训练': 'Ball-feel work',
+    '技术主题': 'Technical focus',
+    '体能间歇': 'Conditioning block',
+    '核心力量': 'Core strength',
+    '放松拉伸': 'Cooldown',
+    '今天，就好好休息': 'Today is for real recovery',
+    '原地慢跑/高抬腿热身': 'Light jog / high-knee warm-up',
+    '开合跳': 'Jumping jacks',
+    '动态拉伸（髋、膝、踝）': 'Dynamic mobility (hips, knees, ankles)',
+    '右手低运球': 'Right-hand low dribble',
+    '左手低运球': 'Left-hand low dribble',
+    '体前变向连续运球': 'Continuous crossover dribble',
+    '手型检查：托球直上直下': 'Form check: straight up-and-down release',
+    '近距投篮出手动作': 'Close-range form shooting',
+    '接球-转髋-出手连贯动作': 'Catch, hip turn, and release',
+    '跳停（双脚同时落地）': 'Jump-stop (two-foot landing)',
+    '防守滑步来回': 'Defensive slide repeats',
+    '变向-启动-急停-假投循环': 'Change direction, burst, stop, and shot-fake sequence',
+    '障碍物（水瓶）绕杆突破': 'Attack around bottle obstacles',
+    '波比跳': 'Burpees',
+    '登山跑': 'Mountain climbers',
+    '跳绳': 'Jump rope',
+    '平板支撑': 'Plank',
+    '侧桥（左侧）': 'Side plank (left)',
+    '侧桥（右侧）': 'Side plank (right)',
+    '臀桥': 'Glute bridge',
+    '静态拉伸全身流程': 'Full-body static stretch flow',
+    '髋部深度拉伸': 'Deep hip stretching',
+    '小腿拉伸': 'Calf stretch',
+    '大腿前侧拉伸': 'Quad stretch',
+    '深呼吸放松': 'Breathing reset',
+    '组间休息40秒': '40 s between sets',
+    '休息20秒': 'Rest 20 s',
+    '不休息': 'No rest',
+    '不计休息': 'Continuous',
+    '分钟': 'min',
     '数据指标科学依据': 'Scientific basis of the metrics',
     '暂无已达成里程碑': 'No completed milestones yet',
     '请输入里程碑名称': 'Please enter a milestone name',
@@ -3425,6 +3512,45 @@ const translations = {
     '最近7天训练负荷': 'Carga de treino dos últimos 7 dias',
     '最近恢复状态': 'Estado recente de recuperação',
     '最近专项测试': 'Testes técnicos recentes',
+    '今日训练目标': 'Objetivos do dia',
+    '预计用时': 'Duração estimada',
+    '热身': 'Aquecimento',
+    '球感训练': 'Treino de bola',
+    '技术主题': 'Foco técnico',
+    '体能间歇': 'Bloco físico',
+    '核心力量': 'Força do core',
+    '放松拉伸': 'Alongamento final',
+    '今天，就好好休息': 'Hoje é para recuperar a sério',
+    '原地慢跑/高抬腿热身': 'Corrida leve / joelhos altos',
+    '开合跳': 'Saltos abertos',
+    '动态拉伸（髋、膝、踝）': 'Mobilidade dinâmica (anca, joelhos, tornozelos)',
+    '右手低运球': 'Drible baixo com a mão direita',
+    '左手低运球': 'Drible baixo com a mão esquerda',
+    '体前变向连续运球': 'Drible contínuo com mudança à frente',
+    '手型检查：托球直上直下': 'Verificação da mecânica: subida e descida reta',
+    '近距投篮出手动作': 'Lançamento curto com foco na mecânica',
+    '接球-转髋-出手连贯动作': 'Receção, rotação da anca e lançamento',
+    '跳停（双脚同时落地）': 'Jump-stop (aterragem com os dois pés)',
+    '防守滑步来回': 'Deslizamentos defensivos ida e volta',
+    '变向-启动-急停-假投循环': 'Mudança de direção, arranque, travagem e finta',
+    '障碍物（水瓶）绕杆突破': 'Ataque entre obstáculos (garrafas)',
+    '波比跳': 'Burpees',
+    '登山跑': 'Mountain climbers',
+    '跳绳': 'Saltar à corda',
+    '平板支撑': 'Prancha',
+    '侧桥（左侧）': 'Prancha lateral (esquerda)',
+    '侧桥（右侧）': 'Prancha lateral (direita)',
+    '臀桥': 'Ponte de glúteos',
+    '静态拉伸全身流程': 'Sequência de alongamento estático do corpo inteiro',
+    '髋部深度拉伸': 'Alongamento profundo da anca',
+    '小腿拉伸': 'Alongamento dos gémeos',
+    '大腿前侧拉伸': 'Alongamento do quadricípite',
+    '深呼吸放松': 'Respiração profunda para relaxar',
+    '组间休息40秒': '40 s entre séries',
+    '休息20秒': 'Descanso 20 s',
+    '不休息': 'Sem descanso',
+    '不计休息': 'Contínuo',
+    '分钟': 'min',
     '数据指标科学依据': 'Base científica dos indicadores',
     '暂无已达成里程碑': 'Ainda não há marcos concluídos',
     '请输入里程碑名称': 'Introduza o nome do marco',
@@ -3457,6 +3583,8 @@ const translations = {
 
 let currentLang = 'zh';
 let isApplyingTranslations = false;
+let currentTrainingPlan = null;
+let currentTrainingDay = 0;
 const generatedTranslations = window.MURRAY_TRANSLATIONS_GENERATED || { en: {}, pt: {} };
 const replacementCache = { en: new Map(), pt: new Map() };
 const replacementKeys = { en: null, pt: null };
@@ -4672,37 +4800,153 @@ function updateWeeklyPlan() {
     '控球基础': {
       goal: '右手/左手各连续运球60次不失误',
       drill: '启动-急停动作完成 9/10 组',
-      tip: '关注运球高度和手掌控制，不要用掌心，用指尖！'
+      tip: '关注运球高度和手掌控制，不要用掌心，用指尖！',
+      blocks: [
+        { type: 'warmup', title: '热身', dur: 8, exercises: [
+          { name: '原地慢跑/高抬腿热身', detail: '2分钟', rest: '不休息', intensity: 'low' },
+          { name: '开合跳', detail: '1分钟', rest: '休息20秒', intensity: 'low' },
+          { name: '动态拉伸（髋、膝、踝）', detail: '3分钟', rest: '不休息', intensity: 'low' }
+        ]},
+        { type: 'skill', title: '球感训练', dur: 12, exercises: [
+          { name: '右手低运球', detail: '1分钟', rest: '休息20秒', intensity: 'low' },
+          { name: '左手低运球', detail: '1分钟', rest: '休息20秒', intensity: 'low' },
+          { name: '体前变向连续运球', detail: '2分钟', rest: '休息20秒', intensity: 'med' }
+        ]},
+        { type: 'tech', title: '技术主题', dur: 18, exercises: [
+          { name: '启动-急停动作完成 9/10 组', detail: '6组', rest: '组间休息40秒', intensity: 'med' },
+          { name: '弱手运球强化 (20分钟)', detail: '4组', rest: '组间休息40秒', intensity: 'med' }
+        ]},
+        { type: 'core', title: '核心力量', dur: 10, exercises: [
+          { name: '平板支撑', detail: '25秒 × 3组', rest: '休息20秒', intensity: 'med' },
+          { name: '臀桥', detail: '20次 × 3组', rest: '休息20秒', intensity: 'med' }
+        ]},
+        { type: 'cooldown', title: '放松拉伸', dur: 6, exercises: [
+          { name: '小腿拉伸', detail: '1分钟', rest: '不计休息', intensity: 'low' },
+          { name: '深呼吸放松', detail: '1分钟', rest: '不计休息', intensity: 'low' }
+        ]}
+      ]
     },
     '脚步与平衡': {
       goal: '跳停练习做到落地重心稳、不晃动',
       drill: '防守滑步来回全程不交叉步',
-      tip: '落地时膝盖不要内扣，重心放低，动作先慢后快。'
+      tip: '落地时膝盖不要内扣，重心放低，动作先慢后快。',
+      blocks: [
+        { type: 'warmup', title: '热身', dur: 8, exercises: [
+          { name: '原地慢跑/高抬腿热身', detail: '2分钟', rest: '不休息', intensity: 'low' },
+          { name: '动态拉伸（髋、膝、踝）', detail: '3分钟', rest: '不休息', intensity: 'low' }
+        ]},
+        { type: 'skill', title: '球感训练', dur: 10, exercises: [
+          { name: '右手低运球', detail: '1分钟', rest: '休息20秒', intensity: 'low' },
+          { name: '左手低运球', detail: '1分钟', rest: '休息20秒', intensity: 'low' }
+        ]},
+        { type: 'tech', title: '技术主题', dur: 20, exercises: [
+          { name: '跳停（双脚同时落地）', detail: '6组', rest: '组间休息40秒', intensity: 'med' },
+          { name: '防守滑步来回', detail: '5组', rest: '组间休息40秒', intensity: 'high' }
+        ]},
+        { type: 'fitness', title: '体能间歇', dur: 8, exercises: [
+          { name: '跳绳', detail: '30秒 × 6轮', rest: '休息20秒', intensity: 'med' }
+        ]},
+        { type: 'cooldown', title: '放松拉伸', dur: 6, exercises: [
+          { name: '大腿前侧拉伸', detail: '1分钟', rest: '不计休息', intensity: 'low' },
+          { name: '深呼吸放松', detail: '1分钟', rest: '不计休息', intensity: 'low' }
+        ]}
+      ]
     },
     '出手手型': {
       goal: '手型出手动作完成50次投篮',
       drill: '接球-转髋-出手连贯无停顿',
-      tip: '拨球时手腕要完全下弯，每一次出手动作都要一模一样。'
+      tip: '拨球时手腕要完全下弯，每一次出手动作都要一模一样。',
+      blocks: [
+        { type: 'warmup', title: '热身', dur: 8, exercises: [
+          { name: '原地慢跑/高抬腿热身', detail: '2分钟', rest: '不休息', intensity: 'low' },
+          { name: '动态拉伸（髋、膝、踝）', detail: '3分钟', rest: '不休息', intensity: 'low' }
+        ]},
+        { type: 'skill', title: '球感训练', dur: 10, exercises: [
+          { name: '手型检查：托球直上直下', detail: '2分钟', rest: '休息20秒', intensity: 'low' }
+        ]},
+        { type: 'tech', title: '技术主题', dur: 20, exercises: [
+          { name: '近距投篮出手动作', detail: '50次', rest: '组间休息40秒', intensity: 'med' },
+          { name: '接球-转髋-出手连贯动作', detail: '15次 × 3组', rest: '组间休息40秒', intensity: 'med' }
+        ]},
+        { type: 'core', title: '核心力量', dur: 8, exercises: [
+          { name: '平板支撑', detail: '25秒 × 3组', rest: '休息20秒', intensity: 'med' }
+        ]},
+        { type: 'cooldown', title: '放松拉伸', dur: 6, exercises: [
+          { name: '小腿拉伸', detail: '1分钟', rest: '不计休息', intensity: 'low' },
+          { name: '深呼吸放松', detail: '1分钟', rest: '不计休息', intensity: 'low' }
+        ]}
+      ]
     },
     '轻松恢复': {
       goal: '今天以放松为主，不追求强度',
       drill: '完整完成柔韧拉伸，每个部位到位',
-      tip: '今天强度低，但拉伸要认真做，这才是真正的恢复。'
+      tip: '今天强度低，但拉伸要认真做，这才是真正的恢复。',
+      blocks: [
+        { type: 'warmup', title: '热身', dur: 6, exercises: [
+          { name: '原地慢跑/高抬腿热身', detail: '2分钟', rest: '不休息', intensity: 'low' }
+        ]},
+        { type: 'core', title: '核心力量', dur: 10, exercises: [
+          { name: '静态拉伸全身流程', detail: '4分钟', rest: '不计休息', intensity: 'low' },
+          { name: '髋部深度拉伸', detail: '2分钟', rest: '不计休息', intensity: 'low' }
+        ]},
+        { type: 'cooldown', title: '放松拉伸', dur: 8, exercises: [
+          { name: '深呼吸放松', detail: '2分钟', rest: '不计休息', intensity: 'low' }
+        ]}
+      ]
     },
     '综合实战': {
       goal: '绕杆突破全程不碰倒水瓶',
       drill: '变向-急停-假投流程熟练完成 6 组',
-      tip: '变向时眼睛看前方，不要低头看球，模拟真实比赛意识。'
+      tip: '变向时眼睛看前方，不要低头看球，模拟真实比赛意识。',
+      blocks: [
+        { type: 'warmup', title: '热身', dur: 8, exercises: [
+          { name: '原地慢跑/高抬腿热身', detail: '2分钟', rest: '不休息', intensity: 'low' },
+          { name: '开合跳', detail: '1分钟', rest: '休息20秒', intensity: 'low' }
+        ]},
+        { type: 'skill', title: '球感训练', dur: 10, exercises: [
+          { name: '体前变向连续运球', detail: '2分钟', rest: '休息20秒', intensity: 'med' }
+        ]},
+        { type: 'tech', title: '技术主题', dur: 20, exercises: [
+          { name: '变向-启动-急停-假投循环', detail: '6组', rest: '组间休息40秒', intensity: 'high' },
+          { name: '障碍物（水瓶）绕杆突破', detail: '5组', rest: '组间休息40秒', intensity: 'high' }
+        ]},
+        { type: 'fitness', title: '体能间歇', dur: 8, exercises: [
+          { name: '登山跑', detail: '30秒 × 6轮', rest: '休息20秒', intensity: 'high' }
+        ]},
+        { type: 'cooldown', title: '放松拉伸', dur: 6, exercises: [
+          { name: '深呼吸放松', detail: '1分钟', rest: '不计休息', intensity: 'low' }
+        ]}
+      ]
     },
     '强化挑战': {
       goal: '比上一个强化日多完成1组',
       drill: '体能间歇心率到位，不偷懒',
-      tip: '今天比平时多一点点努力，但不要追求数量，要追求质量。'
+      tip: '今天比平时多一点点努力，但不要追求数量，要追求质量。',
+      blocks: [
+        { type: 'warmup', title: '热身', dur: 8, exercises: [
+          { name: '原地慢跑/高抬腿热身', detail: '2分钟', rest: '不休息', intensity: 'low' },
+          { name: '动态拉伸（髋、膝、踝）', detail: '3分钟', rest: '不休息', intensity: 'low' }
+        ]},
+        { type: 'fitness', title: '体能间歇', dur: 18, exercises: [
+          { name: '波比跳', detail: '5次 × 6轮', rest: '休息20秒', intensity: 'high' },
+          { name: '跳绳', detail: '40秒 × 5轮', rest: '休息20秒', intensity: 'med' }
+        ]},
+        { type: 'core', title: '核心力量', dur: 10, exercises: [
+          { name: '平板支撑', detail: '30秒 × 3组', rest: '休息20秒', intensity: 'med' },
+          { name: '侧桥（左侧）', detail: '20秒 × 3组', rest: '休息20秒', intensity: 'med' },
+          { name: '侧桥（右侧）', detail: '20秒 × 3组', rest: '休息20秒', intensity: 'med' }
+        ]},
+        { type: 'cooldown', title: '放松拉伸', dur: 6, exercises: [
+          { name: '大腿前侧拉伸', detail: '1分钟', rest: '不计休息', intensity: 'low' },
+          { name: '深呼吸放松', detail: '1分钟', rest: '不计休息', intensity: 'low' }
+        ]}
+      ]
     },
     '完全休息': {
       goal: '今天不安排任何训练，让身体充分恢复。',
       drill: '可以散步15-20分钟，做10分钟轻松拉伸。',
-      tip: '保证充足睡眠和补水，让下一周训练质量更高。'
+      tip: '保证充足睡眠和补水，让下一周训练质量更高。',
+      rest: true
     }
   };
 
@@ -4741,6 +4985,9 @@ function updateWeeklyPlan() {
     ...themeLibrary[theme]
   }));
 
+  currentTrainingPlan = { focus, reason, evidence, weeklyPlan };
+  currentTrainingDay = Math.min(currentTrainingDay, weeklyPlan.length - 1);
+
   plan.innerHTML = `
     <div class="suggestion-card priority-high">
       <div class="suggestion-title">🎯 ${t('推荐重点：')}${t(focus)}</div>
@@ -4749,17 +4996,105 @@ function updateWeeklyPlan() {
         <li><strong>${t('生成依据：')}</strong>${evidence.join(' · ')}</li>
       </ul>
     </div>
-    ${weeklyPlan.map((item) => `
-      <div class="suggestion-card">
-        <div class="suggestion-title">${t(item.day)}</div>
-        <ul class="suggestion-list">
-          <li><strong>${t('主题：')}</strong>${t(item.theme)}</li>
-          <li><strong>${t('今日目标：')}</strong>${t(item.goal)}</li>
-          <li>${t(item.drill)}</li>
-          <li><strong>${t('教练提示：')}</strong>${t(item.tip)}</li>
+    <div class="training-tabs">
+      ${weeklyPlan.map((item, index) => `
+        <button class="training-tab ${index === currentTrainingDay ? 'active' : ''} ${item.rest ? 'rest' : ''}" onclick="switchTrainingDay(${index})">
+          <span class="training-tab-day">${t(item.day)}</span>
+          <span class="training-tab-theme">${t(item.theme)}</span>
+        </button>
+      `).join('')}
+    </div>
+    <div id="trainingDayDetail"></div>
+  `;
+  renderTrainingDay();
+}
+
+function switchTrainingDay(index) {
+  currentTrainingDay = index;
+  updateWeeklyPlan();
+}
+
+function renderTrainingDay() {
+  const detail = document.getElementById('trainingDayDetail');
+  if (!detail || !currentTrainingPlan) return;
+  const day = currentTrainingPlan.weeklyPlan[currentTrainingDay];
+  if (!day) return;
+  const themeColorMap = {
+    '控球基础': { bg: 'rgba(249,115,22,.12)', color: 'var(--primary)' },
+    '脚步与平衡': { bg: 'rgba(37,99,235,.12)', color: 'var(--blue)' },
+    '出手手型': { bg: 'rgba(147,51,234,.12)', color: 'var(--purple)' },
+    '轻松恢复': { bg: 'rgba(34,197,94,.12)', color: 'var(--green)' },
+    '综合实战': { bg: 'rgba(8,145,178,.12)', color: 'var(--cyan)' },
+    '强化挑战': { bg: 'rgba(220,38,38,.10)', color: 'var(--red)' },
+    '完全休息': { bg: 'rgba(37,99,235,.10)', color: 'var(--blue)' }
+  };
+  const color = themeColorMap[day.theme] || { bg: 'rgba(249,115,22,.12)', color: 'var(--primary)' };
+
+  if (day.rest) {
+    detail.innerHTML = `
+      <div class="daily-detail">
+        <div class="daily-header">
+          <div>
+            <div class="daily-title">${t(day.day)} · ${t(day.theme)}</div>
+            <div class="daily-subtitle">${t('预计用时')} 20 ${t('分钟')}</div>
+          </div>
+          <div class="daily-theme-badge" style="background:${color.bg};color:${color.color}">${t(day.theme)}</div>
+        </div>
+        <div class="rest-day-box">
+          <div class="big-icon">🛌</div>
+          <h3>${t('今天，就好好休息')}</h3>
+          <p>${t(day.goal)}<br>${t(day.drill)}<br>${t(day.tip)}</p>
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  let minute = 0;
+  const blocksHtml = (day.blocks || []).map((block) => {
+    const start = minute;
+    minute += block.dur;
+    const end = minute;
+    return `
+      <div class="timeline-block ${block.type}">
+        <div class="block-header">
+          <span class="block-time">${start}-${end} ${t('分钟')}</span>
+          <span class="block-title">${t(block.title)}</span>
+          <span class="block-duration">${block.dur} ${t('分钟')}</span>
+        </div>
+        <div class="block-content">
+          ${block.exercises.map(ex => `
+            <div class="exercise-row">
+              <span class="ex-name">${t(ex.name)}</span>
+              <span class="ex-detail">${t(ex.detail)}</span>
+              <span class="ex-rest">${t(ex.rest)}</span>
+              <span class="ex-intensity intensity-${ex.intensity}"></span>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  detail.innerHTML = `
+    <div class="daily-detail">
+      <div class="daily-header">
+        <div>
+          <div class="daily-title">${t(day.day)} · ${t(day.theme)}</div>
+          <div class="daily-subtitle">${t('预计用时')} ${minute} ${t('分钟')}</div>
+        </div>
+        <div class="daily-theme-badge" style="background:${color.bg};color:${color.color}">${t(day.theme)}</div>
+      </div>
+      <div class="daily-goals">
+        <h4>${t('今日训练目标')}</h4>
+        <ul class="goal-list">
+          <li>${t(day.goal)}</li>
+          <li>${t(day.drill)}</li>
         </ul>
       </div>
-    `).join('')}
+      <div class="timeline">${blocksHtml}</div>
+      <div class="tip-box"><strong>${t('教练提示：')}</strong>${t(day.tip)}</div>
+    </div>
   `;
 }
 
