@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Murray Tang 专业篮球训练管理系统 v2.0</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="./translations.generated.js"></script>
 <style>
 :root {
   --primary: #f97316;
@@ -25,9 +26,6 @@
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
-.lang-loading { display: none; position: fixed; inset: 0; background: rgba(241,245,249,0.96); z-index: 9999; align-items: center; justify-content: center; font-size: 18px; font-weight: 700; color: var(--primary); }
-body.lang-pending .lang-loading { display: flex; }
-body.lang-pending .app { visibility: hidden; }
 
 .app { display: flex; flex-direction: column; min-height: 100vh; }
 .header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 24px; display: flex; align-items: center; justify-content: space-between; height: 64px; position: sticky; top: 0; z-index: 100; box-shadow: 0 1px 4px rgba(0,0,0,.06); }
@@ -187,7 +185,6 @@ tr:hover td { background: var(--surface2); }
 </style>
 </head>
 <body>
-<div id="langLoading" class="lang-loading">Loading translation...</div>
 <div class="app">
   <header class="header">
     <div class="header-logo">
@@ -3289,51 +3286,11 @@ const translations = {
 
 let currentLang = 'zh';
 let isApplyingTranslations = false;
-const runtimeTranslationCache = {};
-
-function getTranslationCacheKey(lang) {
-  return `murray_runtime_translations_${lang}`;
-}
-
-function loadRuntimeTranslations(lang) {
-  if (runtimeTranslationCache[lang]) return runtimeTranslationCache[lang];
-  try {
-    runtimeTranslationCache[lang] = JSON.parse(localStorage.getItem(getTranslationCacheKey(lang)) || '{}');
-  } catch {
-    runtimeTranslationCache[lang] = {};
-  }
-  return runtimeTranslationCache[lang];
-}
-
-function saveRuntimeTranslations(lang) {
-  localStorage.setItem(getTranslationCacheKey(lang), JSON.stringify(runtimeTranslationCache[lang] || {}));
-}
+const generatedTranslations = window.MURRAY_TRANSLATIONS_GENERATED || { en: {}, pt: {} };
 
 function t(text) {
   if (currentLang === 'zh') return text;
-  return translations[currentLang]?.[text] || loadRuntimeTranslations(currentLang)[text] || text;
-}
-
-async function translateTextsWithAPI(texts, targetLang) {
-  if (!texts.length || targetLang === 'zh') return {};
-  const cache = loadRuntimeTranslations(targetLang);
-  const pending = texts.filter(text => text && !translations[targetLang]?.[text] && !cache[text]);
-  if (!pending.length) return cache;
-
-  for (const text of pending) {
-    try {
-      const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=zh-CN&tl=${encodeURIComponent(targetLang)}&dt=t&q=${encodeURIComponent(text)}`;
-      const response = await fetch(url);
-      if (!response.ok) continue;
-      const result = await response.json();
-      const translated = Array.isArray(result?.[0]) ? result[0].map(item => item[0]).join('') : '';
-      if (translated) cache[text] = translated;
-    } catch {}
-  }
-
-  runtimeTranslationCache[targetLang] = cache;
-  saveRuntimeTranslations(targetLang);
-  return cache;
+  return translations[currentLang]?.[text] || generatedTranslations[currentLang]?.[text] || text;
 }
 
 // 初始化默认数据
@@ -3410,30 +3367,6 @@ function translateTextNode(node) {
   node.textContent = original.replace(trimmed, translated);
 }
 
-function collectChineseTexts(root = document.body) {
-  const textSet = new Set();
-  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
-    acceptNode(node) {
-      if (!node.parentElement) return NodeFilter.FILTER_REJECT;
-      const tagName = node.parentElement.tagName;
-      if (['SCRIPT', 'STYLE'].includes(tagName)) return NodeFilter.FILTER_REJECT;
-      if (!node.textContent.trim()) return NodeFilter.FILTER_REJECT;
-      return /[\u4e00-\u9fff]/.test(node.textContent) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
-    }
-  });
-
-  while (walker.nextNode()) {
-    textSet.add(walker.currentNode.textContent.trim());
-  }
-
-  root.querySelectorAll('input[placeholder], textarea[placeholder], option').forEach(el => {
-    const value = el.hasAttribute('placeholder') ? el.getAttribute('placeholder') : el.textContent;
-    if (value && /[\u4e00-\u9fff]/.test(value)) textSet.add(value.trim());
-  });
-
-  return [...textSet];
-}
-
 function applyTranslations(root = document.body) {
   if (!root) return;
   isApplyingTranslations = true;
@@ -3470,16 +3403,6 @@ function applyTranslations(root = document.body) {
   updateAgeGroupSelectorLabels();
   updateLanguageLinks();
   isApplyingTranslations = false;
-}
-
-async function applyRuntimeTranslations(root = document.body) {
-  if (!root || currentLang === 'zh') return;
-  if (root.dataset.runtimeTranslated === currentLang) return;
-  const texts = collectChineseTexts(root);
-  if (!texts.length) return;
-  await translateTextsWithAPI(texts, currentLang);
-  applyTranslations(root);
-  root.dataset.runtimeTranslated = currentLang;
 }
 
 function getActivePageId() {
@@ -3540,7 +3463,6 @@ function showPage(pageId, evt) {
   if (pageId === 'reports') updateCompleteness();
   if (pageId === 'training') updateWeeklyPlan();
   updateLanguageLinks();
-  applyRuntimeTranslations(page);
 }
 
 // 子标签切换
@@ -4834,7 +4756,7 @@ function clearAlerts() {
 }
 
 // 初始化
-window.onload = async function() {
+window.onload = function() {
   const today = new Date().toISOString().split('T')[0];
   document.querySelectorAll('input[type="date"]').forEach(input => {
     if (!input.value) input.value = today;
@@ -4844,7 +4766,6 @@ window.onload = async function() {
   document.getElementById('ageGroupSelector').value = currentAgeGroup;
   const urlLang = new URL(window.location.href).searchParams.get('lang');
   currentLang = ['zh', 'en', 'pt'].includes(urlLang) ? urlLang : 'zh';
-  if (currentLang !== 'zh') document.body.classList.add('lang-pending');
   const initialPageId = window.location.hash ? window.location.hash.replace('#', '') : 'dashboard';
   syncPageSelectors(initialPageId);
   
@@ -4853,11 +4774,9 @@ window.onload = async function() {
   updateVideoTable();
   updateMilestoneList();
   applyTranslations(document.body);
-  await applyRuntimeTranslations(document.body);
   if (initialPageId !== 'dashboard' && document.getElementById(initialPageId)) {
     showPage(initialPageId);
   }
-  document.body.classList.remove('lang-pending');
   
   // 自动检查预警
   setTimeout(checkAllAlerts, 1000);
