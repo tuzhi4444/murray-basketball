@@ -3293,6 +3293,31 @@ function t(text) {
   return translations[currentLang]?.[text] || generatedTranslations[currentLang]?.[text] || text;
 }
 
+function translateDynamicValue(text) {
+  if (currentLang === 'zh' || !text) return text;
+  let output = text;
+  if (currentLang === 'en') {
+    output = output
+      .replace(/达成日期:\s*/g, 'Achieved on: ')
+      .replace(/本周训练:\s*(\d+)次/g, 'Training this week: $1 sessions')
+      .replace(/里程碑:\s*(\d+)\/(\d+)/g, 'Milestones: $1/$2')
+      .replace(/(\d+(?:\.\d+)?)天/g, '$1 days')
+      .replace(/(\d+(?:\.\d+)?)次/g, '$1 times')
+      .replace(/(\d+(?:\.\d+)?)秒/g, '$1 s')
+      .replace(/(\d+(?:\.\d+)?)分/g, '$1 pts');
+  } else if (currentLang === 'pt') {
+    output = output
+      .replace(/达成日期:\s*/g, 'Data alcançada: ')
+      .replace(/本周训练:\s*(\d+)次/g, 'Treinos esta semana: $1 vezes')
+      .replace(/里程碑:\s*(\d+)\/(\d+)/g, 'Marcos: $1/$2')
+      .replace(/(\d+(?:\.\d+)?)天/g, '$1 dias')
+      .replace(/(\d+(?:\.\d+)?)次/g, '$1 vezes')
+      .replace(/(\d+(?:\.\d+)?)秒/g, '$1 s')
+      .replace(/(\d+(?:\.\d+)?)分/g, '$1 pontos');
+  }
+  return output;
+}
+
 // 初始化默认数据
 if (dataStore.anthropometric.length === 0) {
   dataStore.anthropometric = [{
@@ -3360,11 +3385,12 @@ function translateTextNode(node) {
   const trimmed = original.trim();
   if (!trimmed) return;
   const translated = t(trimmed);
-  if (translated === trimmed) {
+  const finalText = translated === trimmed ? translateDynamicValue(trimmed) : translated;
+  if (finalText === trimmed) {
     node.textContent = original;
     return;
   }
-  node.textContent = original.replace(trimmed, translated);
+  node.textContent = original.replace(trimmed, finalText);
 }
 
 function applyTranslations(root = document.body) {
@@ -3463,6 +3489,7 @@ function showPage(pageId, evt) {
   if (pageId === 'reports') updateCompleteness();
   if (pageId === 'training') updateWeeklyPlan();
   updateLanguageLinks();
+  applyTranslations(page);
 }
 
 // 子标签切换
@@ -3670,6 +3697,7 @@ document.getElementById('fmsForm')?.addEventListener('submit', function(e) {
     alert.innerHTML = `<strong>✅ 评估结果：</strong>FMS总分${total}分，动作模式良好。`;
     alert.style.display = 'block';
   }
+  applyTranslations(alert);
   
   dataStore.fms.push(data);
   saveData('fms');
@@ -3825,6 +3853,7 @@ function updateFMSTable() {
       <td>${risk}</td>
     </tr>`;
   }).join('');
+  applyTranslations(tbody);
 }
 
 function updateGameTable() {
@@ -3862,6 +3891,7 @@ function updateInjuryTable() {
       <td>${d.recurrence === 'yes' ? '是' : '否'}</td>
     </tr>
   `).join('');
+  applyTranslations(tbody);
 }
 
 // 视频档案功能
@@ -3894,6 +3924,7 @@ function updateVideoTable() {
   
   if (dataStore.videos.length === 0) {
     tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#999;">暂无视频记录</td></tr>';
+    applyTranslations(tbody);
     return;
   }
   
@@ -3906,6 +3937,7 @@ function updateVideoTable() {
       <td>${v.comment || '无'}</td>
     </tr>
   `).join('');
+  applyTranslations(tbody);
 }
 
 // 里程碑功能
@@ -3951,6 +3983,7 @@ function updateMilestoneList() {
   
   if (dataStore.milestones.length === 0) {
     container.innerHTML = '<p style="color:#999;text-align:center;">暂无已达成里程碑</p>';
+    applyTranslations(container);
     return;
   }
   
@@ -3960,6 +3993,7 @@ function updateMilestoneList() {
       <div style="font-size: 12px; color: #666;">达成日期: ${m.date}</div>
     </div>
   `).join('');
+  applyTranslations(container);
 }
 
 // 图表更新函数
@@ -4746,6 +4780,7 @@ function displayAlerts(alerts) {
       </div>
     `).join('');
   }
+  applyTranslations(container);
 }
 
 function clearAlerts() {
@@ -4825,6 +4860,7 @@ function checkMissingData() {
           ${missing.map(m => `• ${m}`).join('<br>')}
         </div>
       `;
+      applyTranslations(dashAlerts);
     }
   }
 }
