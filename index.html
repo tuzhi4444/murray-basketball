@@ -26,6 +26,7 @@
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+body.i18n-pending .app { visibility: hidden; }
 
 .app { display: flex; flex-direction: column; min-height: 100vh; }
 .header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 24px; display: flex; align-items: center; justify-content: space-between; height: 64px; position: sticky; top: 0; z-index: 100; box-shadow: 0 1px 4px rgba(0,0,0,.06); }
@@ -4848,6 +4849,7 @@ function clearAlerts() {
 
 // 初始化
 window.onload = function() {
+  if (currentLang !== 'zh') document.body.classList.add('i18n-pending');
   const today = new Date().toISOString().split('T')[0];
   document.querySelectorAll('input[type="date"]').forEach(input => {
     if (!input.value) input.value = today;
@@ -4869,6 +4871,7 @@ window.onload = function() {
   if (initialPageId !== 'dashboard' && document.getElementById(initialPageId)) {
     showPage(initialPageId);
   }
+  document.body.classList.remove('i18n-pending');
   
   // 自动检查预警
   setTimeout(checkAllAlerts, 1000);
