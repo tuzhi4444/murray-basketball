@@ -6474,7 +6474,7 @@ function updateAnalysis() {
     const latestDribbling = dataStore.dribbling[dataStore.dribbling.length - 1] || {};
     const latestPassing = dataStore.passing[dataStore.passing.length - 1] || {};
     const latestNutrition = dataStore.nutrition[dataStore.nutrition.length - 1] || {};
-    const playerName = getPlayerDisplayName();
+    const playerName = getPlayerName();
     const fmsTotal = num(calculateFMSTotal(latestFms));
     const strengthItems = [];
     const concernItems = [];
@@ -6586,7 +6586,7 @@ function updateAnalysis() {
       });
     }
   } catch (error) {
-    fillList('strengthAnalysis', ['分析模块已自动回退，请先刷新页面后重试。']);
+    fillList('strengthAnalysis', ['分析模块已自动回退，请先刷新页面后重试。', `错误信息：${error?.message || 'unknown error'}`]);
     fillList('concernAnalysis', ['当前最新数据没有丢失，但这次分析生成失败。']);
     fillList('positionAnalysis', ['系统正在使用保底结果，避免整页空白。']);
     fillList('trainingAnalysis', ['建议先检查最近录入的数据格式，再重新打开智能分析页面。']);
