@@ -3018,6 +3018,7 @@ const STORAGE_KEY_MAP = {
 };
 
 const LEGACY_FIELD_KEY_MAP = {
+  reach: 'reachHeight',
   maxvert: 'maxVert',
   broadjump: 'broadJump',
   vertreach: 'vertReach',
@@ -3785,12 +3786,12 @@ const replacementKeys = { en: null, pt: null };
 const PLAYER_PROFILE_STORAGE_KEY = 'murray_player_profile';
 const DEFAULT_PLAYER_PROFILE = {
   systemName: '青少年篮球训练系统 Pro',
-  name: 'Murray Tang',
-  birthDate: '2016-01-08',
-  team: 'Sub-10组',
-  trainingYears: '2',
-  coach: 'Miguel Salvador',
-  position: '后卫(建议)',
+  name: '',
+  birthDate: '',
+  team: '',
+  trainingYears: '',
+  coach: '',
+  position: '',
   notes: ''
 };
 let playerProfile = loadPlayerProfile();
@@ -4088,36 +4089,6 @@ function translateDynamicValue(text) {
       .replace(/(\d+(?:\.\d+)?)分/g, '$1 pontos');
   }
   return output;
-}
-
-// 初始化默认数据
-if (dataStore.anthropometric.length === 0) {
-  dataStore.anthropometric = [{
-    date: '2026-02-24', height: 138.0, weight: 32.35, wingspan: 138.6, reachHeight: 178.3,
-    handLength: null, handWidth: null, footLength: null, footWidth: null
-  }];
-  saveData('anthropometric');
-}
-
-if (dataStore.power.length === 0) {
-  dataStore.power = [{
-    date: '2026-02-24', sj: null, cmj: null, maxVert: 54.7, broadJump: 175, vertReach: 233, consecutiveJumps: null
-  }];
-  saveData('power');
-}
-
-if (dataStore.speed.length === 0) {
-  dataStore.speed = [{
-    date: '2026-02-24', sprint20m: 3.53, sprint30m: null, sprint34: null, sprint10m: null, maxSpeed: null
-  }];
-  saveData('speed');
-}
-
-if (dataStore.endurance.length === 0) {
-  dataStore.endurance = [{
-    date: '2026-02-24', yoyoLevel: null, yoyoDistance: null, shuttleRuns: 80, run12min: null, run1500m: null, hrRecovery: null
-  }];
-  saveData('endurance');
 }
 
 function saveData(key) {
@@ -4622,13 +4593,14 @@ function updateAnthroTable() {
   if (!tbody) return;
   tbody.innerHTML = dataStore.anthropometric.map((d, index, arr) => {
     const bmi = d.weight && d.height ? (d.weight / ((d.height/100) ** 2)).toFixed(1) : '--';
+    const reachHeight = d.reachHeight ?? d.reach ?? '--';
     return `<tr>
       <td>${d.date}</td>
       <td>${d.height || '--'}</td>
       <td>${d.weight || '--'}</td>
       <td>${bmi}</td>
       <td>${d.wingspan || '--'}</td>
-      <td>${d.reachHeight || '--'}</td>
+      <td>${reachHeight}</td>
       <td><button class="btn btn-sm btn-secondary" onclick="deleteDataEntry('anthropometric', ${arr.length - 1 - index})">删除</button></td>
     </tr>`;
   }).reverse().join('');
@@ -5656,8 +5628,12 @@ function renderTrainingDay() {
 
 // 导出功能
 function exportAllData() {
-  const data = JSON.stringify(dataStore, null, 2);
-  const blob = new Blob([data], { type: 'application/json' });
+  const payload = JSON.stringify({
+    profile: playerProfile,
+    ageGroup: currentAgeGroup,
+    data: dataStore
+  }, null, 2);
+  const blob = new Blob([payload], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
@@ -5817,6 +5793,9 @@ function clearAllData() {
       localStorage.removeItem(STORAGE_KEY_MAP[key] || ('murray_' + key));
       localStorage.removeItem('murray_' + key);
     });
+    playerProfile = { ...DEFAULT_PLAYER_PROFILE };
+    localStorage.removeItem(PLAYER_PROFILE_STORAGE_KEY);
+    localStorage.removeItem('murray_ageGroup');
     alert(t('所有数据已清空'));
     location.reload();
   });
@@ -5827,17 +5806,18 @@ function importData() {
   if (!data) return alert(t('请输入数据'));
   try {
     const parsed = JSON.parse(data);
-    if (parsed.profile) {
-      playerProfile = { ...playerProfile, ...parsed.profile };
+    const payload = parsed.data && typeof parsed.data === 'object' ? parsed : { data: parsed };
+    if (payload.profile) {
+      playerProfile = { ...playerProfile, ...payload.profile };
       savePlayerProfileStorage();
     }
-    if (parsed.ageGroup) {
-      currentAgeGroup = parsed.ageGroup;
+    if (payload.ageGroup) {
+      currentAgeGroup = payload.ageGroup;
       localStorage.setItem('murray_ageGroup', currentAgeGroup);
     }
-    Object.keys(parsed).forEach(key => {
+    Object.keys(payload.data || {}).forEach(key => {
       if (dataStore[key] !== undefined) {
-        dataStore[key] = Array.isArray(parsed[key]) ? parsed[key].map(normalizeRecord) : parsed[key];
+        dataStore[key] = Array.isArray(payload.data[key]) ? payload.data[key].map(normalizeRecord) : payload.data[key];
         saveData(key);
       }
     });
