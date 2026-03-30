@@ -1366,7 +1366,9 @@ tr:hover td { background: var(--surface2); }
       <div id="passing" class="page">
         <div class="card">
           <div class="card-title"><span class="icon">🤲</span>传球能力测试</div>
+          <div class="card-subtitle">优先记录比赛里最常用、最容易布置的传球项目；花式传球改成可选</div>
           <form id="passingForm">
+            <div class="section-title">推荐基础测试</div>
             <div class="form-grid">
               <div class="form-group">
                 <label>测试日期 *</label>
@@ -1381,19 +1383,15 @@ tr:hover td { background: var(--surface2); }
                 <input type="number" id="bouncePass" min="0" max="10" placeholder="例如: 7">
               </div>
               <div class="form-group">
-                <label>单手肩上传球 (命中/10次)</label>
+                <label>头上传球 / 长传 (命中/10次)</label>
                 <input type="number" id="overheadPass" min="0" max="10" placeholder="例如: 6">
               </div>
               <div class="form-group">
-                <label>单手侧传球 (命中/10次)</label>
+                <label>移动中传球 (命中/10次)</label>
                 <input type="number" id="sidePass" min="0" max="10" placeholder="例如: 7">
               </div>
               <div class="form-group">
-                <label>脑后传球 (命中/10次)</label>
-                <input type="number" id="behindPass" min="0" max="10" placeholder="例如: 5">
-              </div>
-              <div class="form-group">
-                <label>全场长传 (命中/10次)</label>
+                <label>全场长传 (命中/10次，可选)</label>
                 <input type="number" id="fullCourtPass" min="0" max="10" placeholder="例如: 5">
               </div>
               <div class="form-group">
@@ -1401,8 +1399,26 @@ tr:hover td { background: var(--surface2); }
                 <input type="number" id="passDecision" step="0.01" placeholder="例如: 1.2">
               </div>
             </div>
+            <div class="section-title">进阶可选测试</div>
+            <div class="form-grid">
+              <div class="form-group">
+                <label>脑后传球 (命中/10次，可选)</label>
+                <input type="number" id="behindPass" min="0" max="10" placeholder="例如: 5">
+              </div>
+            </div>
             <button type="submit" class="btn btn-primary">💾 保存传球数据</button>
           </form>
+        </div>
+
+        <div class="card">
+          <div class="card-title"><span class="icon">📏</span>怎么测最实用</div>
+          <div class="suggestion-card">
+            <ul class="suggestion-list">
+              <li>胸前、击地、头上传球最适合固定目标物做 10 次命中测试。</li>
+              <li>移动中传球最贴近比赛，建议边跑边传到墙上标记区或同伴接球点。</li>
+              <li>传球决策时间可以用口令或颜色信号来测，看到信号再决定传球类型。</li>
+            </ul>
+          </div>
         </div>
         
         <div class="card">
@@ -1417,39 +1433,63 @@ tr:hover td { background: var(--surface2); }
       <div id="defense" class="page">
         <div class="card">
           <div class="card-title"><span class="icon">🛡️</span>防守能力测试</div>
+          <div class="card-subtitle">先测最容易落地的防守脚步、Closeout 和卡位；不再强依赖难复现项目</div>
           <form id="defenseForm">
+            <div class="section-title">推荐基础测试</div>
             <div class="form-grid">
               <div class="form-group">
                 <label>测试日期 *</label>
                 <input type="date" id="defenseDate" required>
               </div>
               <div class="form-group">
-                <label>防守滑步 (秒/往返)</label>
-                <input type="number" id="defensiveSlide" step="0.01" placeholder="例如: 6.5">
+                <label>左滑步往返 (秒)</label>
+                <input type="number" id="slideLeft" step="0.01" placeholder="例如: 6.5">
               </div>
               <div class="form-group">
-                <label>防守后退跑 (秒)</label>
-                <input type="number" id="defensiveBack" step="0.01" placeholder="例如: 4.5">
+                <label>右滑步往返 (秒)</label>
+                <input type="number" id="slideRight" step="0.01" placeholder="例如: 6.3">
               </div>
               <div class="form-group">
-                <label>反应启动时间 (秒)</label>
-                <input type="number" id="reactionTime" step="0.001" placeholder="例如: 0.35">
+                <label>Closeout 回合 (秒)</label>
+                <input type="number" id="closeoutSpeed" step="0.01" placeholder="例如: 2.8">
               </div>
               <div class="form-group">
-                <label>干扰投篮成功率 (%)</label>
+                <label>防守反应启动 (秒)</label>
+                <input type="number" id="reactionTime" step="0.01" placeholder="例如: 0.35">
+              </div>
+              <div class="form-group">
+                <label>卡位成功 (次/10回合)</label>
+                <input type="number" id="blocksOut" min="0" max="10" placeholder="例如: 7">
+              </div>
+              <div class="form-group">
+                <label>干扰成功率 (%)</label>
                 <input type="number" id="contestRate" min="0" max="100" placeholder="例如: 60">
               </div>
+            </div>
+            <div class="section-title">进阶可选测试</div>
+            <div class="form-grid">
               <div class="form-group">
-                <label>抢断成功率 (%)</label>
+                <label>抢断成功率 (%) 可选</label>
                 <input type="number" id="stealRate" min="0" max="100" placeholder="例如: 40">
               </div>
               <div class="form-group">
-                <label>防守站位评分 (1-10)</label>
+                <label>防守站位评分 (1-10) 可选</label>
                 <input type="number" id="positioning" min="1" max="10" placeholder="例如: 7">
               </div>
             </div>
             <button type="submit" class="btn btn-primary">💾 保存防守数据</button>
           </form>
+        </div>
+
+        <div class="card">
+          <div class="card-title"><span class="icon">📏</span>怎么测最实用</div>
+          <div class="suggestion-card">
+            <ul class="suggestion-list">
+              <li>左/右滑步往返：两侧各测一次，最能看出脚步平衡和防守姿势。</li>
+              <li>Closeout：从禁区或标志点冲到投手位，最后两步减速举手干扰。</li>
+              <li>卡位成功：用 10 个回合记录能否先占住位置，比主观打分更稳定。</li>
+            </ul>
+          </div>
         </div>
         
         <div class="card">
@@ -5096,7 +5136,8 @@ const MODULE_INSIGHT_CONFIG = {
     title: '防守对比与下一阶段目标',
     dataKey: 'defense',
     metrics: [
-      { key: 'defensiveSlide', label: '防守滑步', unit: '秒', direction: 'down', step: 0.08 },
+      { key: 'slideLeft', label: '左滑步', unit: '秒', direction: 'down', step: 0.08 },
+      { key: 'slideRight', label: '右滑步', unit: '秒', direction: 'down', step: 0.08 },
       { key: 'reactionTime', label: '反应启动', unit: '秒', direction: 'down', step: 0.02 },
       { key: 'contestRate', label: '干扰成功率', unit: '%', direction: 'up', step: 5 }
     ],
@@ -5260,7 +5301,7 @@ const MODULE_HISTORY_CONFIG = {
       { label: '击地传球', key: 'bouncePass', unit: '/10' },
       { label: '头上传球', key: 'overheadPass', unit: '/10' },
       { label: '全场长传', key: 'fullCourtPass', unit: '/10' },
-      { label: '传球决策', key: 'passDecision', unit: '/10' }
+      { label: '传球决策', key: 'passDecision', unit: 's' }
     ]
   },
   defense: {
@@ -5270,7 +5311,7 @@ const MODULE_HISTORY_CONFIG = {
       { label: '左滑步', key: 'slideLeft', unit: 's' },
       { label: '右滑步', key: 'slideRight', unit: 's' },
       { label: 'Closeout', key: 'closeoutSpeed', unit: 's' },
-      { label: '横移', key: 'lateralQuickness', unit: 's' },
+      { label: '反应启动', key: 'reactionTime', unit: 's' },
       { label: '卡位', key: 'blocksOut', unit: '/10' }
     ]
   },
@@ -5960,19 +6001,21 @@ function updateDribblingChart() {
 function updatePassingChart() { 
   const ctx = document.getElementById('passingChart')?.getContext('2d');
   if (!ctx || dataStore.passing.length === 0) return;
+  const latest = dataStore.passing[dataStore.passing.length-1] || {};
   
   if (charts.passing) charts.passing.destroy();
   charts.passing = new Chart(ctx, {
     type: 'radar',
     data: {
-      labels: [t('胸前传球'), t('击地传球'), t('单手长传'), t('传球决策')],
+      labels: [t('胸前传球'), t('击地传球'), t('头上传球'), t('移动中传球'), t('传球决策')],
       datasets: [{
         label: '评分',
         data: [
-          dataStore.passing[dataStore.passing.length-1]?.chest || 0,
-          dataStore.passing[dataStore.passing.length-1]?.bounce || 0,
-          dataStore.passing[dataStore.passing.length-1]?.oneHand || 0,
-          dataStore.passing[dataStore.passing.length-1]?.decision || 0
+          latest.chestPass || 0,
+          latest.bouncePass || 0,
+          latest.overheadPass || 0,
+          latest.sidePass || 0,
+          Number.isFinite(latest.passDecision) ? Math.max(0, 10 - latest.passDecision * 4) : 0
         ],
         backgroundColor: 'rgba(59,130,246,0.2)',
         borderColor: '#3b82f6'
@@ -5984,19 +6027,21 @@ function updatePassingChart() {
 function updateDefenseChart() { 
   const ctx = document.getElementById('defenseChart')?.getContext('2d');
   if (!ctx || dataStore.defense.length === 0) return;
+  const latest = dataStore.defense[dataStore.defense.length-1] || {};
   
   if (charts.defense) charts.defense.destroy();
   charts.defense = new Chart(ctx, {
     type: 'radar',
     data: {
-      labels: [t('滑步移动'), t('防守站位'), t('抢断'), t('篮板卡位')],
+      labels: [t('左滑步'), t('右滑步'), t('Closeout'), t('干扰成功率'), t('卡位')],
       datasets: [{
         label: '评分',
         data: [
-          dataStore.defense[dataStore.defense.length-1]?.slide || 0,
-          dataStore.defense[dataStore.defense.length-1]?.position || 0,
-          dataStore.defense[dataStore.defense.length-1]?.steal || 0,
-          dataStore.defense[dataStore.defense.length-1]?.boxOut || 0
+          Number.isFinite(latest.slideLeft) ? Math.max(0, 10 - latest.slideLeft) : 0,
+          Number.isFinite(latest.slideRight) ? Math.max(0, 10 - latest.slideRight) : 0,
+          Number.isFinite(latest.closeoutSpeed) ? Math.max(0, 10 - latest.closeoutSpeed * 2) : 0,
+          latest.contestRate ? latest.contestRate / 10 : 0,
+          latest.blocksOut || 0
         ],
         backgroundColor: 'rgba(239,68,68,0.2)',
         borderColor: '#ef4444'
