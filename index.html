@@ -4384,6 +4384,7 @@ function showPage(pageId, evt) {
   if (pageId === 'reports') updateCompleteness();
   if (pageId === 'training') updateWeeklyPlan();
   if (pageId !== 'anthropometric') updateModuleInsights(pageId);
+  updateModuleHistory(pageId);
   updateLanguageLinks();
 }
 
@@ -5113,6 +5114,166 @@ const MODULE_INSIGHT_CONFIG = {
   }
 };
 
+const MODULE_HISTORY_CONFIG = {
+  bodycomp: {
+    title: '身体成分历史数据',
+    columns: [
+      { label: '日期', key: 'date' },
+      { label: '体脂率', key: 'bodyFat', unit: '%' },
+      { label: '肌肉量', key: 'muscleMass', unit: 'kg' },
+      { label: '去脂体重', key: 'leanMass', unit: 'kg' },
+      { label: '内脏脂肪', key: 'visceralFat' },
+      { label: '基础代谢', key: 'bmr', unit: 'kcal' }
+    ]
+  },
+  power: {
+    title: '爆发力历史数据',
+    columns: [
+      { label: '日期', key: 'date' },
+      { label: '原地纵跳', key: 'sj', unit: 'cm' },
+      { label: 'CMJ', key: 'cmj', unit: 'cm' },
+      { label: '助跑纵跳', key: 'maxVert', unit: 'cm' },
+      { label: '立定跳远', key: 'broadJump', unit: 'cm' },
+      { label: '纵跳摸高', key: 'vertReach', unit: 'cm' }
+    ]
+  },
+  speed: {
+    title: '速度历史数据',
+    columns: [
+      { label: '日期', key: 'date' },
+      { label: '10米加速', key: 'sprint10m', unit: 's' },
+      { label: '20米冲刺', key: 'sprint20m', unit: 's' },
+      { label: '30米冲刺', key: 'sprint30m', unit: 's' },
+      { label: '3/4场地', key: 'sprint34', unit: 's' },
+      { label: '最高速度', key: 'maxSpeed', unit: 'm/s' }
+    ]
+  },
+  agility: {
+    title: '敏捷性历史数据',
+    columns: [
+      { label: '日期', key: 'date' },
+      { label: 'T型跑', key: 'tTest', unit: 's' },
+      { label: '5-10-5', key: 'proAgility', unit: 's' },
+      { label: '车道敏捷', key: 'laneAgility', unit: 's' },
+      { label: 'Illinois', key: 'illinois', unit: 's' },
+      { label: '方形跑', key: 'boxDrill', unit: 's' }
+    ]
+  },
+  endurance: {
+    title: '耐力历史数据',
+    columns: [
+      { label: '日期', key: 'date' },
+      { label: 'Yo-Yo级别', key: 'yoyoLevel' },
+      { label: 'Yo-Yo距离', key: 'yoyoDistance', unit: 'm' },
+      { label: '折返跑次数', key: 'shuttleRuns' },
+      { label: '12分钟跑', key: 'run12min', unit: 'm' },
+      { label: '1500米跑', key: 'run1500m', unit: 's' }
+    ]
+  },
+  strength: {
+    title: '力量历史数据',
+    columns: [
+      { label: '日期', key: 'date' },
+      { label: '卧推次数', key: 'benchPress' },
+      { label: '深蹲1RM', key: 'squat1RM', unit: 'kg' },
+      { label: '硬拉1RM', key: 'deadlift1RM', unit: 'kg' },
+      { label: '右手握力', key: 'gripRight', unit: 'kg' },
+      { label: '左手握力', key: 'gripLeft', unit: 'kg' },
+      { label: '俯卧撑', key: 'pushups' }
+    ]
+  },
+  shooting: {
+    title: '投篮历史数据',
+    columns: [
+      { label: '日期', key: 'date' },
+      { label: '罚球', key: 'freeThrow', unit: '/10' },
+      { label: '接球投篮', key: 'catchShoot', unit: '/10' },
+      { label: '运球投篮', key: 'dribbleShoot', unit: '/10' },
+      { label: '三分', key: 'threePoint', unit: '/10' },
+      { label: '中距离', key: 'midRange', unit: '/10' }
+    ]
+  },
+  dribbling: {
+    title: '运球历史数据',
+    columns: [
+      { label: '日期', key: 'date' },
+      { label: '右手', key: 'right', unit: 's' },
+      { label: '左手', key: 'left', unit: 's' },
+      { label: '体前变向', key: 'cross', unit: 's' },
+      { label: '背后', key: 'behind', unit: 's' },
+      { label: '失误', key: 'turnovers' }
+    ]
+  },
+  passing: {
+    title: '传球历史数据',
+    columns: [
+      { label: '日期', key: 'date' },
+      { label: '胸前传球', key: 'chestPass', unit: '/10' },
+      { label: '击地传球', key: 'bouncePass', unit: '/10' },
+      { label: '头上传球', key: 'overheadPass', unit: '/10' },
+      { label: '全场长传', key: 'fullCourtPass', unit: '/10' },
+      { label: '传球决策', key: 'passDecision', unit: '/10' }
+    ]
+  },
+  defense: {
+    title: '防守历史数据',
+    columns: [
+      { label: '日期', key: 'date' },
+      { label: '左滑步', key: 'slideLeft', unit: 's' },
+      { label: '右滑步', key: 'slideRight', unit: 's' },
+      { label: 'Closeout', key: 'closeoutSpeed', unit: 's' },
+      { label: '横移', key: 'lateralQuickness', unit: 's' },
+      { label: '卡位', key: 'blocksOut', unit: '/10' }
+    ]
+  },
+  cognitive: {
+    title: '认知历史数据',
+    columns: [
+      { label: '日期', key: 'date' },
+      { label: '决策正确数', key: 'decisionCorrect', unit: '/20' },
+      { label: '决策时间', key: 'decisionTime', unit: 's' },
+      { label: '简单反应', key: 'simpleReaction', unit: 'ms' },
+      { label: '选择反应', key: 'choiceReaction', unit: 'ms' },
+      { label: '预判准确率', key: 'anticipation', unit: '%' }
+    ]
+  },
+  psychology: {
+    title: '心理历史数据',
+    columns: [
+      { label: '日期', key: 'date' },
+      { label: '挑战性', key: 'challenge', unit: '/10' },
+      { label: '承诺性', key: 'commitment', unit: '/10' },
+      { label: '情绪控制', key: 'emotionalControl', unit: '/10' },
+      { label: '能力自信', key: 'confidenceAbility', unit: '/10' },
+      { label: '注意力', key: 'focus', unit: '/10' }
+    ]
+  },
+  nutrition: {
+    title: '营养恢复历史数据',
+    columns: [
+      { label: '日期', key: 'date' },
+      { label: '总热量', key: 'calories', unit: 'kcal' },
+      { label: '蛋白质', key: 'protein', unit: 'g' },
+      { label: '水分', key: 'water', unit: 'ml' },
+      { label: '睡眠时长', key: 'sleepHours', unit: 'h' },
+      { label: '睡眠质量', key: 'sleepQuality', unit: '/10' },
+      { label: '疲劳RPE', key: 'rpe', unit: '/10' }
+    ]
+  },
+  load: {
+    title: '训练负荷历史数据',
+    columns: [
+      { label: '日期', key: 'date' },
+      { label: '训练类型', key: 'type', raw: true },
+      { label: '时长', key: 'duration', unit: 'min' },
+      { label: 'RPE', key: 'rpe', unit: '/10' },
+      { label: 'sRPE', key: 'sRpe' },
+      { label: '冲刺次数', key: 'sprints' },
+      { label: '跳跃次数', key: 'jumps' }
+    ]
+  }
+};
+
 function getMetricDisplayValue(value, metric) {
   if (!Number.isFinite(value)) return null;
   if (metric.unit === '/10') return `${value}${metric.unit}`;
@@ -5152,6 +5313,64 @@ function ensureModuleInsightsCard(pageId, title) {
     page.appendChild(card);
   }
   return document.getElementById(`${pageId}Insights`);
+}
+
+function ensureModuleHistoryCard(pageId, title) {
+  const page = document.getElementById(pageId);
+  if (!page) return null;
+  let card = document.getElementById(`${pageId}HistoryCard`);
+  if (!card) {
+    card = document.createElement('div');
+    card.className = 'card';
+    card.id = `${pageId}HistoryCard`;
+    card.innerHTML = `
+      <div class="card-title"><span class="icon">📋</span>${title}</div>
+      <div class="table-wrap">
+        <table>
+          <thead id="${pageId}HistoryHead"></thead>
+          <tbody id="${pageId}HistoryBody"></tbody>
+        </table>
+      </div>
+    `;
+    page.appendChild(card);
+  }
+  return card;
+}
+
+function formatHistoryValue(value, column) {
+  if (value === null || value === undefined || value === '') return '--';
+  if (column.raw) return value;
+  if (typeof value === 'number') {
+    const decimals = String(value).includes('.') ? 1 : 0;
+    return `${value.toFixed(decimals)}${column.unit || ''}`;
+  }
+  return `${value}${column.unit || ''}`;
+}
+
+function updateModuleHistory(pageId) {
+  const config = MODULE_HISTORY_CONFIG[pageId];
+  if (!config) return;
+  const card = ensureModuleHistoryCard(pageId, config.title);
+  if (!card) return;
+  const head = document.getElementById(`${pageId}HistoryHead`);
+  const body = document.getElementById(`${pageId}HistoryBody`);
+  if (!head || !body) return;
+
+  head.innerHTML = `<tr>${config.columns.map(col => `<th>${t(col.label)}</th>`).join('')}<th>${t('操作')}</th></tr>`;
+  const records = Array.isArray(dataStore[pageId]) ? dataStore[pageId] : [];
+  if (!records.length) {
+    body.innerHTML = `<tr><td colspan="${config.columns.length + 1}" style="text-align:center;color:#64748b;">${t('暂无历史数据')}</td></tr>`;
+    applyTranslations(card);
+    return;
+  }
+
+  body.innerHTML = records.map((item, index) => ({ item, index })).reverse().map(({ item, index }) => `
+    <tr>
+      ${config.columns.map(col => `<td>${formatHistoryValue(item[col.key], col)}</td>`).join('')}
+      <td><button class="btn btn-sm btn-secondary" onclick="deleteDataEntry('${pageId}', ${index})">${t('删除')}</button></td>
+    </tr>
+  `).join('');
+  applyTranslations(card);
 }
 
 function updateModuleInsights(pageId) {
