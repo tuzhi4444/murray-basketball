@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Murray Tang 专业篮球训练管理系统 v2.0</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="./translations.generated.js"></script>
 <style>
 :root {
@@ -2126,6 +2127,54 @@ tr:hover td { background: var(--surface2); }
           </div>
           <button class="btn btn-primary" onclick="importData()">📤 导入数据</button>
         </div>
+
+        <div class="card">
+          <div class="card-title"><span class="icon">☁️</span>Supabase 云同步</div>
+          <div class="suggestion-card">
+            <div class="suggestion-title">推荐配置</div>
+            <ul class="suggestion-list">
+              <li>只需要填写 `Project URL` 和 `anon key`，这套系统就能读写同一份云端数据。</li>
+              <li>手机和电脑请填同一组配置，并使用同一个同步标识。</li>
+              <li>当前采用“最后一次保存覆盖云端”的同步方式，适合个人/家庭训练档案。</li>
+            </ul>
+          </div>
+          <div class="form-grid">
+            <div class="form-group full">
+              <label>Supabase Project URL</label>
+              <input type="text" id="supabaseUrl" placeholder="https://xxxx.supabase.co">
+            </div>
+            <div class="form-group full">
+              <label>Supabase anon key</label>
+              <textarea id="supabaseAnonKey" rows="3" placeholder="粘贴 Supabase 项目的 anon public key"></textarea>
+            </div>
+            <div class="form-group">
+              <label>数据表名</label>
+              <input type="text" id="supabaseTable" placeholder="basketball_sync_state">
+            </div>
+            <div class="form-group">
+              <label>同步标识</label>
+              <input type="text" id="supabaseStateId" placeholder="例如：murray-shared">
+            </div>
+            <div class="form-group">
+              <label>自动云同步</label>
+              <select id="supabaseAutoSync">
+                <option value="true">开启</option>
+                <option value="false">关闭</option>
+              </select>
+            </div>
+            <div class="form-group full">
+              <label>云同步状态</label>
+              <div id="cloudSyncStatus" class="alert alert-info">尚未配置 Supabase，当前仍是本地存储模式。</div>
+            </div>
+          </div>
+          <div class="export-buttons">
+            <button class="btn btn-primary" onclick="saveSupabaseSettings()">💾 保存云端配置</button>
+            <button class="btn btn-secondary" onclick="testSupabaseConnection()">🔌 测试连接</button>
+            <button class="btn btn-secondary" onclick="copySupabaseSetupSQL()">📋 复制建表 SQL</button>
+            <button class="btn btn-secondary" onclick="pullCloudData()">⬇️ 从云端读取</button>
+            <button class="btn btn-success" onclick="pushCloudData()">⬆️ 同步到云端</button>
+          </div>
+        </div>
         
         <div class="card">
           <div class="card-title"><span class="icon">📊</span>数据完整性检查</div>
@@ -3975,6 +4024,14 @@ let currentLang = 'zh';
 let isApplyingTranslations = false;
 let currentTrainingPlan = null;
 let currentTrainingDay = 0;
+const SUPABASE_CONFIG_STORAGE_KEY = 'murray_supabase_config';
+const DEFAULT_SUPABASE_CONFIG = {
+  url: '',
+  anonKey: '',
+  table: 'basketball_sync_state',
+  stateId: 'shared-default',
+  autoSync: true
+};
 const generatedTranslations = window.MURRAY_TRANSLATIONS_GENERATED || { en: {}, pt: {} };
 const replacementCache = { en: new Map(), pt: new Map() };
 const replacementKeys = { en: null, pt: null };
@@ -3990,6 +4047,10 @@ const DEFAULT_PLAYER_PROFILE = {
   notes: ''
 };
 let playerProfile = loadPlayerProfile();
+let supabaseConfig = loadSupabaseConfig();
+let supabaseClient = null;
+let supabaseClientSignature = '';
+let cloudSyncTimer = null;
 
 function loadPlayerProfile() {
   try {
@@ -3997,6 +4058,15 @@ function loadPlayerProfile() {
     return { ...DEFAULT_PLAYER_PROFILE, ...(parsed || {}) };
   } catch {
     return { ...DEFAULT_PLAYER_PROFILE };
+  }
+}
+
+function loadSupabaseConfig() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(SUPABASE_CONFIG_STORAGE_KEY) || '{}');
+    return { ...DEFAULT_SUPABASE_CONFIG, ...(parsed || {}) };
+  } catch {
+    return { ...DEFAULT_SUPABASE_CONFIG };
   }
 }
 
@@ -4134,7 +4204,217 @@ function savePlayerProfile() {
   updatePlayerProfileUI();
   updateSchedulePage();
   updateGoalsTable();
+  queueCloudSync();
   alert(t('球员档案已保存！'));
+}
+
+function renderSupabaseConfig() {
+  const mapping = {
+    supabaseUrl: supabaseConfig.url,
+    supabaseAnonKey: supabaseConfig.anonKey,
+    supabaseTable: supabaseConfig.table,
+    supabaseStateId: supabaseConfig.stateId,
+    supabaseAutoSync: String(Boolean(supabaseConfig.autoSync))
+  };
+  Object.entries(mapping).forEach(([id, value]) => {
+    const el = document.getElementById(id);
+    if (el) el.value = value ?? '';
+  });
+  updateCloudSyncStatus();
+}
+
+function readSupabaseConfigFromForm() {
+  return {
+    url: document.getElementById('supabaseUrl')?.value.trim() || '',
+    anonKey: document.getElementById('supabaseAnonKey')?.value.trim() || '',
+    table: document.getElementById('supabaseTable')?.value.trim() || DEFAULT_SUPABASE_CONFIG.table,
+    stateId: document.getElementById('supabaseStateId')?.value.trim() || DEFAULT_SUPABASE_CONFIG.stateId,
+    autoSync: document.getElementById('supabaseAutoSync')?.value !== 'false'
+  };
+}
+
+function saveSupabaseConfigStorage() {
+  localStorage.setItem(SUPABASE_CONFIG_STORAGE_KEY, JSON.stringify(supabaseConfig));
+}
+
+function updateCloudSyncStatus(message, type = 'info') {
+  const el = document.getElementById('cloudSyncStatus');
+  if (!el) return;
+  el.className = `alert alert-${type}`;
+  if (message) {
+    el.textContent = message;
+    return;
+  }
+  if (!supabaseConfig.url || !supabaseConfig.anonKey) {
+    el.textContent = '尚未配置 Supabase，当前仍是本地存储模式。';
+    return;
+  }
+  el.textContent = `已配置云同步：${supabaseConfig.table} / ${supabaseConfig.stateId || DEFAULT_SUPABASE_CONFIG.stateId}`;
+}
+
+function getSupabaseClient() {
+  if (!supabaseConfig.url || !supabaseConfig.anonKey || !window.supabase?.createClient) return null;
+  const signature = `${supabaseConfig.url}::${supabaseConfig.anonKey}`;
+  if (supabaseClient && supabaseClientSignature === signature) return supabaseClient;
+  supabaseClient = window.supabase.createClient(supabaseConfig.url, supabaseConfig.anonKey);
+  supabaseClientSignature = signature;
+  return supabaseClient;
+}
+
+function buildAppPayload() {
+  return {
+    exportedAt: new Date().toISOString(),
+    profile: playerProfile,
+    ageGroup: currentAgeGroup,
+    data: dataStore
+  };
+}
+
+function getSupabaseSetupSQL() {
+  const table = (supabaseConfig.table || DEFAULT_SUPABASE_CONFIG.table).replace(/[^a-zA-Z0-9_]/g, '');
+  return [
+    `create table if not exists public.${table} (`,
+    `  id text primary key,`,
+    `  payload jsonb not null default '{}'::jsonb,`,
+    `  updated_at timestamptz not null default now()`,
+    `);`,
+    ``,
+    `alter table public.${table} enable row level security;`,
+    ``,
+    `create policy "anon_select_${table}" on public.${table} for select to anon using (true);`,
+    `create policy "anon_insert_${table}" on public.${table} for insert to anon with check (true);`,
+    `create policy "anon_update_${table}" on public.${table} for update to anon using (true) with check (true);`
+  ].join('\n');
+}
+
+async function copySupabaseSetupSQL() {
+  const sql = getSupabaseSetupSQL();
+  try {
+    await navigator.clipboard.writeText(sql);
+    showToast('建表 SQL 已复制到剪贴板', 'success');
+  } catch {
+    showModal({
+      title: 'Supabase 建表 SQL',
+      message: '如果自动复制失败，请手动复制下面这段 SQL 到 Supabase SQL Editor 执行。',
+      textValue: sql,
+      showTextarea: true,
+      confirmText: '完成',
+      singleButton: true
+    });
+  }
+}
+
+async function saveSupabaseSettings() {
+  supabaseConfig = readSupabaseConfigFromForm();
+  saveSupabaseConfigStorage();
+  renderSupabaseConfig();
+  showToast('云端配置已保存', 'success');
+}
+
+async function testSupabaseConnection() {
+  supabaseConfig = readSupabaseConfigFromForm();
+  saveSupabaseConfigStorage();
+  const client = getSupabaseClient();
+  if (!client) {
+    updateCloudSyncStatus('请先填写 Supabase Project URL 和 anon key。', 'warning');
+    return;
+  }
+  try {
+    const { error } = await client.from(supabaseConfig.table).select('id').limit(1);
+    if (error) throw error;
+    updateCloudSyncStatus('Supabase 连接成功，可以开始云同步。', 'success');
+    showToast('Supabase 连接成功', 'success');
+  } catch (error) {
+    updateCloudSyncStatus(`连接失败：${error.message}`, 'danger');
+    showToast(`Supabase 连接失败：${error.message}`, 'error');
+  }
+}
+
+function applyImportedPayload(payload, mergeMode = false) {
+  if (payload.profile) {
+    playerProfile = { ...playerProfile, ...payload.profile };
+    savePlayerProfileStorage();
+    renderProfileForm();
+  }
+  if (payload.ageGroup) {
+    currentAgeGroup = payload.ageGroup;
+    localStorage.setItem('murray_ageGroup', currentAgeGroup);
+    const selector = document.getElementById('ageGroupSelector');
+    if (selector) selector.value = currentAgeGroup;
+  }
+  if (mergeMode) {
+    mergeData(payload.data || {});
+  } else {
+    Object.keys(payload.data || {}).forEach(key => {
+      if (dataStore[key] !== undefined) {
+        dataStore[key] = Array.isArray(payload.data[key]) ? payload.data[key].map(normalizeRecord) : payload.data[key];
+        saveData(key);
+      }
+    });
+  }
+  refreshActivePageView();
+}
+
+async function pushCloudData(showNotice = true) {
+  const client = getSupabaseClient();
+  if (!client) {
+    if (showNotice) showToast('请先完成 Supabase 配置', 'error');
+    updateCloudSyncStatus('请先完成 Supabase 配置。', 'warning');
+    return false;
+  }
+  try {
+    const { error } = await client
+      .from(supabaseConfig.table)
+      .upsert({
+        id: supabaseConfig.stateId || DEFAULT_SUPABASE_CONFIG.stateId,
+        payload: buildAppPayload(),
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'id' });
+    if (error) throw error;
+    updateCloudSyncStatus(`云端同步成功：${new Date().toLocaleString('zh-CN')}`, 'success');
+    if (showNotice) showToast('数据已同步到云端', 'success');
+    return true;
+  } catch (error) {
+    updateCloudSyncStatus(`云端同步失败：${error.message}`, 'danger');
+    if (showNotice) showToast(`云端同步失败：${error.message}`, 'error');
+    return false;
+  }
+}
+
+async function pullCloudData(showNotice = true) {
+  const client = getSupabaseClient();
+  if (!client) {
+    if (showNotice) showToast('请先完成 Supabase 配置', 'error');
+    updateCloudSyncStatus('请先完成 Supabase 配置。', 'warning');
+    return false;
+  }
+  try {
+    const { data, error } = await client
+      .from(supabaseConfig.table)
+      .select('payload, updated_at')
+      .eq('id', supabaseConfig.stateId || DEFAULT_SUPABASE_CONFIG.stateId)
+      .maybeSingle();
+    if (error) throw error;
+    if (!data?.payload) {
+      updateCloudSyncStatus('云端还没有数据，先从一台设备上传一次。', 'warning');
+      if (showNotice) showToast('云端还没有数据', 'info');
+      return false;
+    }
+    applyImportedPayload(data.payload, false);
+    updateCloudSyncStatus(`已从云端读取：${new Date(data.updated_at || Date.now()).toLocaleString('zh-CN')}`, 'success');
+    if (showNotice) showToast('已从云端读取最新数据', 'success');
+    return true;
+  } catch (error) {
+    updateCloudSyncStatus(`云端读取失败：${error.message}`, 'danger');
+    if (showNotice) showToast(`云端读取失败：${error.message}`, 'error');
+    return false;
+  }
+}
+
+function queueCloudSync() {
+  if (!supabaseConfig.autoSync || !supabaseConfig.url || !supabaseConfig.anonKey) return;
+  clearTimeout(cloudSyncTimer);
+  cloudSyncTimer = setTimeout(() => pushCloudData(false), 1200);
 }
 
 function ensureUiShell() {
@@ -4161,7 +4441,8 @@ function showToast(message, type = 'info') {
   const palette = {
     info: { bg: '#0f172a', color: '#fff' },
     success: { bg: '#166534', color: '#fff' },
-    warning: { bg: '#b45309', color: '#fff' }
+    warning: { bg: '#b45309', color: '#fff' },
+    error: { bg: '#b91c1c', color: '#fff' }
   };
   const theme = palette[type] || palette.info;
   toast.textContent = String(message || '');
@@ -4289,6 +4570,7 @@ function translateDynamicValue(text) {
 function saveData(key) {
   const canonicalKey = STORAGE_KEY_MAP[key] || ('murray_' + key);
   localStorage.setItem(canonicalKey, JSON.stringify(dataStore[key]));
+  queueCloudSync();
 }
 
 function getFieldKey(formId, inputId) {
@@ -6725,6 +7007,8 @@ function clearAllData() {
     playerProfile = { ...DEFAULT_PLAYER_PROFILE };
     localStorage.removeItem(PLAYER_PROFILE_STORAGE_KEY);
     localStorage.removeItem('murray_ageGroup');
+    localStorage.removeItem(CONFIRMED_RECOVERY_FLAG_KEY);
+    queueCloudSync();
     alert(t('所有数据已清空'));
     location.reload();
   });
@@ -6744,12 +7028,7 @@ function importData() {
       currentAgeGroup = payload.ageGroup;
       localStorage.setItem('murray_ageGroup', currentAgeGroup);
     }
-    Object.keys(payload.data || {}).forEach(key => {
-      if (dataStore[key] !== undefined) {
-        dataStore[key] = Array.isArray(payload.data[key]) ? payload.data[key].map(normalizeRecord) : payload.data[key];
-        saveData(key);
-      }
-    });
+    applyImportedPayload(payload, false);
     alert(t('数据导入成功！'));
     location.reload();
   } catch (e) {
@@ -6954,6 +7233,7 @@ function changeAgeGroup() {
   localStorage.setItem('murray_ageGroup', currentAgeGroup);
   updateSchedulePage();
   updateGoalsTable();
+  queueCloudSync();
   showToast(`${t('已切换到：')}${ageGroupConfig[currentAgeGroup].name}`, 'success');
 }
 
@@ -7164,6 +7444,7 @@ window.onload = function() {
   // 设置年龄段选择器
   document.getElementById('ageGroupSelector').value = currentAgeGroup;
   renderProfileForm();
+  renderSupabaseConfig();
   const urlLang = new URL(window.location.href).searchParams.get('lang');
   currentLang = ['zh', 'en', 'pt'].includes(urlLang) ? urlLang : 'zh';
   const initialPageId = window.location.hash ? window.location.hash.replace('#', '') : 'dashboard';
@@ -7185,6 +7466,9 @@ window.onload = function() {
   
   // 检查缺失数据
   setTimeout(checkMissingData, 1500);
+  if (supabaseConfig.url && supabaseConfig.anonKey) {
+    setTimeout(() => pullCloudData(false), 300);
+  }
 };
 
 // 缺失数据检查
