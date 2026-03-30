@@ -468,32 +468,44 @@ tr:hover td { background: var(--surface2); }
           <div class="stat-card">
             <div class="stat-value" id="dashHeight">138.0</div>
             <div class="stat-label">身高 (cm)</div>
-            <div class="stat-change down">-5.5cm vs基准</div>
+            <div class="stat-change neutral" id="dashHeightChange">等待首条记录</div>
           </div>
           <div class="stat-card">
             <div class="stat-value" id="dashJump">54.7</div>
             <div class="stat-label">助跑纵跳 (cm)</div>
-            <div class="stat-change up">+69% vs基准</div>
+            <div class="stat-change neutral" id="dashJumpChange">等待首条记录</div>
           </div>
           <div class="stat-card">
             <div class="stat-value" id="dashSprint">3.53</div>
             <div class="stat-label">20米冲刺 (秒)</div>
-            <div class="stat-change up">+10% vs基准</div>
+            <div class="stat-change neutral" id="dashSprintChange">等待首条记录</div>
           </div>
           <div class="stat-card">
             <div class="stat-value" id="dashFMS">--</div>
             <div class="stat-label">FMS总分</div>
-            <div class="stat-change neutral">待测试</div>
+            <div class="stat-change neutral" id="dashFMSChange">待测试</div>
           </div>
           <div class="stat-card">
             <div class="stat-value" id="dashYoYo">--</div>
             <div class="stat-label">Yo-Yo级别</div>
-            <div class="stat-change neutral">待测试</div>
+            <div class="stat-change neutral" id="dashYoYoChange">待测试</div>
           </div>
           <div class="stat-card">
             <div class="stat-value" id="dashSleep">--</div>
             <div class="stat-label">睡眠评分</div>
-            <div class="stat-change neutral">待记录</div>
+            <div class="stat-change neutral" id="dashSleepChange">待记录</div>
+          </div>
+        </div>
+
+        <div class="two-col">
+          <div class="card">
+            <div class="card-title"><span class="icon">🧭</span>本周总览建议</div>
+            <div id="dashboardHighlights"></div>
+          </div>
+
+          <div class="card">
+            <div class="card-title"><span class="icon">🕒</span>最近更新动态</div>
+            <div id="dashboardRecentActivity"></div>
           </div>
         </div>
         
@@ -4324,24 +4336,164 @@ function showComparisonTab(tabId, evt) {
 // 仪表板更新
 function updateDashboard() {
   const anthro = dataStore.anthropometric[dataStore.anthropometric.length - 1] || {};
+  const prevAnthro = dataStore.anthropometric[dataStore.anthropometric.length - 2] || {};
   const power = dataStore.power[dataStore.power.length - 1] || {};
+  const prevPower = dataStore.power[dataStore.power.length - 2] || {};
   const speed = dataStore.speed[dataStore.speed.length - 1] || {};
+  const prevSpeed = dataStore.speed[dataStore.speed.length - 2] || {};
   const endurance = dataStore.endurance[dataStore.endurance.length - 1] || {};
+  const prevEndurance = dataStore.endurance[dataStore.endurance.length - 2] || {};
   const fms = dataStore.fms[dataStore.fms.length - 1] || {};
+  const prevFms = dataStore.fms[dataStore.fms.length - 2] || {};
   const nutrition = dataStore.nutrition[dataStore.nutrition.length - 1] || {};
+  const prevNutrition = dataStore.nutrition[dataStore.nutrition.length - 2] || {};
   
   document.getElementById('dashHeight').textContent = anthro.height || '--';
   document.getElementById('dashJump').textContent = power.maxVert || '--';
   document.getElementById('dashSprint').textContent = speed.sprint20m || '--';
   
   const fmsTotal = calculateFMSTotal(fms);
+  const prevFmsTotal = calculateFMSTotal(prevFms);
   document.getElementById('dashFMS').textContent = fmsTotal || '--';
   document.getElementById('dashYoYo').textContent = endurance.yoyoLevel || '--';
   document.getElementById('dashSleep').textContent = nutrition.sleepQuality || '--';
+
+  setDashboardChange('dashHeightChange', anthro.height, prevAnthro.height, 'cm');
+  setDashboardChange('dashJumpChange', power.maxVert, prevPower.maxVert, 'cm');
+  setDashboardChange('dashSprintChange', speed.sprint20m, prevSpeed.sprint20m, 's', true);
+  setDashboardChange('dashFMSChange', fmsTotal, prevFmsTotal, t('分'));
+  setDashboardChange('dashYoYoChange', endurance.yoyoLevel, prevEndurance.yoyoLevel, '', false, true);
+  setDashboardChange('dashSleepChange', nutrition.sleepQuality, prevNutrition.sleepQuality, '/10');
   
   updatePlayerProfileUI();
+  updateDashboardHighlights();
+  updateDashboardRecentActivity();
   updateRadarChart();
   updateTrendChart();
+}
+
+function setDashboardChange(elementId, current, previous, unit = '', lowerIsBetter = false, rawText = false) {
+  const el = document.getElementById(elementId);
+  if (!el) return;
+  const currentNumber = Number(current);
+  const previousNumber = Number(previous);
+  if ((rawText && current != null && previous == null) || (!Number.isFinite(previousNumber) && (rawText ? current != null : Number.isFinite(currentNumber)))) {
+    el.className = 'stat-change neutral';
+    el.textContent = t('已记录首条数据');
+    return;
+  }
+  if ((rawText && (current == null || previous == null)) || (!rawText && (!Number.isFinite(currentNumber) || !Number.isFinite(previousNumber)))) {
+    el.className = 'stat-change neutral';
+    el.textContent = t('等待更多数据');
+    return;
+  }
+
+  if (rawText) {
+    const changed = String(current) !== String(previous);
+    el.className = `stat-change ${changed ? 'up' : 'neutral'}`;
+    el.textContent = changed ? `${t('较上次')} ${previous} -> ${current}` : t('与上次一致');
+    return;
+  }
+
+  const delta = currentNumber - previousNumber;
+  if (delta === 0) {
+    el.className = 'stat-change neutral';
+    el.textContent = t('与上次持平');
+    return;
+  }
+  const positive = lowerIsBetter ? delta < 0 : delta > 0;
+  el.className = `stat-change ${positive ? 'up' : 'down'}`;
+  el.textContent = `${positive ? '↑' : '↓'} ${t('较上次')}${Math.abs(delta).toFixed(unit === 's' ? 2 : 1)}${unit}`;
+}
+
+function updateDashboardHighlights() {
+  const container = document.getElementById('dashboardHighlights');
+  if (!container) return;
+
+  const latestPower = dataStore.power[dataStore.power.length - 1] || {};
+  const latestSpeed = dataStore.speed[dataStore.speed.length - 1] || {};
+  const latestFms = dataStore.fms[dataStore.fms.length - 1] || {};
+  const latestLoad = dataStore.load[dataStore.load.length - 1] || {};
+  const latestNutrition = dataStore.nutrition[dataStore.nutrition.length - 1] || {};
+  const focus = [];
+
+  if (Number.isFinite(latestFms.total || calculateFMSTotal(latestFms)) && (latestFms.total || calculateFMSTotal(latestFms)) < 14) {
+    focus.push(t('先把FMS薄弱动作补起来，优先做深蹲、跨栏步和旋转稳定训练。'));
+  }
+  if (Number.isFinite(latestSpeed.sprint20m) && latestSpeed.sprint20m > 3.7) {
+    focus.push(t('速度是当前短板，建议每周安排2次起跑加速和减速控制训练。'));
+  }
+  if (Number.isFinite(latestPower.maxVert) && latestPower.maxVert < 45) {
+    focus.push(t('爆发力还有提升空间，重点加入跳跃技术、下肢力量和踝髋弹性训练。'));
+  }
+  if (Number.isFinite(latestNutrition.sleepQuality) && latestNutrition.sleepQuality < 7) {
+    focus.push(t('恢复质量偏低，先把睡眠和训练后补给稳定下来。'));
+  }
+  if (Number.isFinite(latestLoad.sRpe) && latestLoad.sRpe > 450) {
+    focus.push(t('最近训练负荷偏高，本周需要安排1次主动恢复，避免连续高强度。'));
+  }
+  if (focus.length === 0) {
+    focus.push(t('当前整体状态比较平稳，可以继续按计划推进，并优先补齐缺失测试。'));
+  }
+
+  const latestAnthro = dataStore.anthropometric[dataStore.anthropometric.length - 1] || {};
+  const summary = [];
+  if (latestAnthro.date) summary.push(`${t('最近测量')}: ${latestAnthro.date}`);
+  if (latestLoad.date) summary.push(`${t('最近训练负荷')}: ${latestLoad.sRpe || '--'}`);
+  if (latestNutrition.date) summary.push(`${t('最近恢复记录')}: ${latestNutrition.date}`);
+
+  container.innerHTML = `
+    <div class="suggestion-card priority-high">
+      <div class="suggestion-title">🎯 ${t('当前最该抓的重点')}</div>
+      <ul class="suggestion-list">${focus.slice(0, 3).map(item => `<li>${item}</li>`).join('')}</ul>
+    </div>
+    <div class="suggestion-card priority-medium">
+      <div class="suggestion-title">📝 ${t('本周执行提示')}</div>
+      <ul class="suggestion-list">
+        ${summary.length ? summary.map(item => `<li>${item}</li>`).join('') : `<li>${t('先录入测量、体能和恢复数据，系统会给出更具体的周建议。')}</li>`}
+      </ul>
+    </div>
+  `;
+  applyTranslations(container);
+}
+
+function updateDashboardRecentActivity() {
+  const container = document.getElementById('dashboardRecentActivity');
+  if (!container) return;
+  const activity = [];
+  const pushLatest = (label, list, formatter) => {
+    const item = list[list.length - 1];
+    if (!item) return;
+    activity.push({ date: item.date || '', text: `${t(label)}: ${formatter(item)}` });
+  };
+
+  pushLatest('身体测量', dataStore.anthropometric, item => `${item.height || '--'}cm / ${item.weight || '--'}kg`);
+  pushLatest('爆发力', dataStore.power, item => `${t('助跑纵跳')} ${item.maxVert || '--'}cm`);
+  pushLatest('速度', dataStore.speed, item => `${t('20米冲刺')} ${item.sprint20m || '--'}s`);
+  pushLatest('训练负荷', dataStore.load, item => `${t('sRPE负荷')} ${item.sRpe || '--'}`);
+  pushLatest('恢复', dataStore.nutrition, item => `${t('睡眠评分')} ${item.sleepQuality || '--'}/10`);
+
+  activity.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+  if (!activity.length) {
+    container.innerHTML = `
+      <div class="suggestion-card">
+        <div class="suggestion-title">${t('暂无最近更新')}</div>
+        <ul class="suggestion-list">
+          <li>${t('任意模块保存新数据后，这里会自动显示最近一次更新摘要。')}</li>
+        </ul>
+      </div>
+    `;
+    applyTranslations(container);
+    return;
+  }
+
+  container.innerHTML = activity.slice(0, 5).map(item => `
+    <div class="suggestion-card" style="border-left-color: var(--blue);">
+      <div class="suggestion-title">📌 ${item.text}</div>
+      <div style="font-size:12px;color:#64748b;margin-top:6px;">${t('记录日期')}: ${item.date || t('未记录')}</div>
+    </div>
+  `).join('');
+  applyTranslations(container);
 }
 
 function calculateFMSTotal(fms) {
@@ -4599,7 +4751,7 @@ document.getElementById('loadForm')?.addEventListener('submit', function(e) {
 function updateAnthroTable() {
   const tbody = document.getElementById('anthroTable');
   if (!tbody) return;
-  tbody.innerHTML = dataStore.anthropometric.map((d, index, arr) => {
+  tbody.innerHTML = dataStore.anthropometric.map((d, index) => ({ d, index })).reverse().map(({ d, index }) => {
     const bmi = d.weight && d.height ? (d.weight / ((d.height/100) ** 2)).toFixed(1) : '--';
     const reachHeight = d.reachHeight ?? d.reach ?? '--';
     const handMetrics = [d.handLength ?? '--', d.handWidth ?? '--'].join(' / ');
@@ -4613,9 +4765,9 @@ function updateAnthroTable() {
       <td>${reachHeight}</td>
       <td>${handMetrics}</td>
       <td>${footMetrics}</td>
-      <td><button class="btn btn-sm btn-secondary" onclick="deleteDataEntry('anthropometric', ${arr.length - 1 - index})">删除</button></td>
+      <td><button class="btn btn-sm btn-secondary" onclick="deleteDataEntry('anthropometric', ${index})">删除</button></td>
     </tr>`;
-  }).reverse().join('');
+  }).join('');
 }
 
 function formatAnthroDelta(current, previous, suffix = '') {
@@ -4986,15 +5138,12 @@ function updateModuleInsights(pageId) {
 function updateGrowthTable() {
   const tbody = document.getElementById('growthTable');
   if (!tbody) return;
-  let prevHeight = null;
-  tbody.innerHTML = dataStore.growth.map((d, i, arr) => {
-    const bmi = d.weight && d.height ? (d.weight / ((d.height/100) ** 2)).toFixed(1) : '--';
+  tbody.innerHTML = dataStore.growth.map((d, i) => ({ d, i })).reverse().map(({ d, i }) => {
     let growth = '--';
-    if (prevHeight && d.height) {
-      const months = 1; // 简化计算
-      growth = ((d.height - prevHeight)).toFixed(1) + 'cm';
+    const previousRecord = i > 0 ? dataStore.growth[i - 1] : null;
+    if (previousRecord?.height && d.height) {
+      growth = ((d.height - previousRecord.height)).toFixed(1) + 'cm';
     }
-    prevHeight = d.height;
     const phvText = { pre: 'PHV前期', during: 'PHV高峰期', post: 'PHV后期', unknown: '不确定' }[d.phvStatus] || '--';
     return `<tr>
       <td>${d.date}</td>
@@ -5003,15 +5152,15 @@ function updateGrowthTable() {
       <td>${growth}</td>
       <td><span class="badge badge-blue">${phvText}</span></td>
       <td>${d.predictedHeight || '--'}cm</td>
-      <td><button class="btn btn-sm btn-secondary" onclick="deleteDataEntry('growth', ${arr.length - 1 - i})">删除</button></td>
+      <td><button class="btn btn-sm btn-secondary" onclick="deleteDataEntry('growth', ${i})">删除</button></td>
     </tr>`;
-  }).reverse().join('');
+  }).join('');
 }
 
 function updateFMSTable() {
   const tbody = document.getElementById('fmsTable');
   if (!tbody) return;
-  tbody.innerHTML = dataStore.fms.map((d, index, arr) => {
+  tbody.innerHTML = dataStore.fms.map((d, index) => ({ d, index })).reverse().map(({ d, index }) => {
     const risk = d.total < 14 ? '<span class="badge badge-red">高风险</span>' : '<span class="badge badge-green">正常</span>';
     return `<tr>
       <td>${d.date}</td>
@@ -5024,16 +5173,16 @@ function updateFMSTable() {
       <td>${d.fmsPushup}</td>
       <td>${d.fmsRotary}</td>
       <td>${risk}</td>
-      <td><button class="btn btn-sm btn-secondary" onclick="deleteDataEntry('fms', ${arr.length - 1 - index})">删除</button></td>
+      <td><button class="btn btn-sm btn-secondary" onclick="deleteDataEntry('fms', ${index})">删除</button></td>
     </tr>`;
-  }).reverse().join('');
+  }).join('');
   applyTranslations(tbody);
 }
 
 function updateGameTable() {
   const tbody = document.getElementById('gameTable');
   if (!tbody) return;
-  tbody.innerHTML = dataStore.game.map((d, index, arr) => `
+  tbody.innerHTML = dataStore.game.map((d, index) => ({ d, index })).reverse().map(({ d, index }) => `
     <tr>
       <td>${d.date}</td>
       <td>${d.opponent}</td>
@@ -5044,9 +5193,9 @@ function updateGameTable() {
       <td>${d.rebounds}</td>
       <td>${d.assists}</td>
       <td>${d.efficiency || '--'}</td>
-      <td><button class="btn btn-sm btn-secondary" onclick="deleteDataEntry('game', ${arr.length - 1 - index})">删除</button></td>
+      <td><button class="btn btn-sm btn-secondary" onclick="deleteDataEntry('game', ${index})">删除</button></td>
     </tr>
-  `).reverse().join('');
+  `).join('');
 }
 
 function updateInjuryTable() {
@@ -5055,7 +5204,7 @@ function updateInjuryTable() {
   const typeMap = { sprain: '扭伤', strain: '拉伤', fracture: '骨折', contusion: '挫伤', tendonitis: '肌腱炎', overuse: '过度使用', other: '其他' };
   const causeMap = { acute: '急性', chronic: '慢性', overuse: '过度使用', contact: '接触', other: '其他' };
   const sevMap = { mild: '轻度', moderate: '中度', severe: '重度' };
-  tbody.innerHTML = dataStore.injury.map((d, index, arr) => `
+  tbody.innerHTML = dataStore.injury.map((d, index) => ({ d, index })).reverse().map(({ d, index }) => `
     <tr>
       <td>${d.date}</td>
       <td>${typeMap[d.type]}</td>
@@ -5064,9 +5213,9 @@ function updateInjuryTable() {
       <td>${sevMap[d.severity]}</td>
       <td>${d.daysOff}天</td>
       <td>${d.recurrence === 'yes' ? '是' : '否'}</td>
-      <td><button class="btn btn-sm btn-secondary" onclick="deleteDataEntry('injury', ${arr.length - 1 - index})">删除</button></td>
+      <td><button class="btn btn-sm btn-secondary" onclick="deleteDataEntry('injury', ${index})">删除</button></td>
     </tr>
-  `).reverse().join('');
+  `).join('');
   applyTranslations(tbody);
 }
 
@@ -5104,16 +5253,16 @@ function updateVideoTable() {
     return;
   }
   
-  tbody.innerHTML = dataStore.videos.map((v, index, arr) => `
+  tbody.innerHTML = dataStore.videos.map((v, index) => ({ v, index })).reverse().map(({ v, index }) => `
     <tr>
       <td>${v.date}</td>
       <td>${v.typeName}</td>
       <td>${v.age}</td>
       <td>${v.link || '未记录'}</td>
       <td>${v.comment || '无'}</td>
-      <td><button class="btn btn-sm btn-secondary" onclick="deleteDataEntry('videos', ${arr.length - 1 - index})">删除</button></td>
+      <td><button class="btn btn-sm btn-secondary" onclick="deleteDataEntry('videos', ${index})">删除</button></td>
     </tr>
-  `).reverse().join('');
+  `).join('');
   applyTranslations(tbody);
 }
 
@@ -5214,7 +5363,7 @@ function updateMilestoneList() {
     return;
   }
   
-  container.innerHTML = dataStore.milestones.map((m, index, arr) => `
+  container.innerHTML = dataStore.milestones.map((m, index) => ({ m, index })).reverse().map(({ m, index }) => `
     <div class="suggestion-card" style="border-left-color: var(--green);">
       <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start;">
         <div>
@@ -5222,10 +5371,10 @@ function updateMilestoneList() {
           <div style="font-size: 12px; color: #666; margin-top: 4px;">${t('达成日期')}: ${m.date || t('未记录')}</div>
           <div style="font-size: 13px; color: #334155; margin-top: 8px;">${m.description || m.note || t('未填写描述')}</div>
         </div>
-        <button class="btn btn-sm btn-secondary" onclick="deleteMilestone(${arr.length - 1 - index})">${t('删除')}</button>
+        <button class="btn btn-sm btn-secondary" onclick="deleteMilestone(${index})">${t('删除')}</button>
       </div>
     </div>
-  `).reverse().join('');
+  `).join('');
   applyTranslations(container);
 }
 
