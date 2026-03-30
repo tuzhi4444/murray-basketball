@@ -4041,11 +4041,20 @@ let supabaseConfig = loadSupabaseConfig();
 let supabaseClient = null;
 let supabaseClientSignature = '';
 let cloudSyncTimer = null;
+const LEGACY_SYSTEM_TITLES = new Set([
+  '青少年篮球训练系统 Pro',
+  'Murray Tang 专业篮球训练管理系统 v2.0',
+  'Murray Tang 专业篮球训练系统 v2.0'
+]);
 
 function loadPlayerProfile() {
   try {
     const parsed = JSON.parse(localStorage.getItem(PLAYER_PROFILE_STORAGE_KEY) || '{}');
-    return { ...DEFAULT_PLAYER_PROFILE, ...(parsed || {}) };
+    const profile = { ...DEFAULT_PLAYER_PROFILE, ...(parsed || {}) };
+    if (!profile.systemName || LEGACY_SYSTEM_TITLES.has(profile.systemName)) {
+      profile.systemName = DEFAULT_PLAYER_PROFILE.systemName;
+    }
+    return profile;
   } catch {
     return { ...DEFAULT_PLAYER_PROFILE };
   }
@@ -4070,7 +4079,10 @@ function getPlayerName() {
 }
 
 function getSystemTitle() {
-  return playerProfile.systemName || DEFAULT_PLAYER_PROFILE.systemName;
+  if (!playerProfile.systemName || LEGACY_SYSTEM_TITLES.has(playerProfile.systemName)) {
+    return DEFAULT_PLAYER_PROFILE.systemName;
+  }
+  return playerProfile.systemName;
 }
 
 function getPlayerBirthDate() {
@@ -4111,6 +4123,9 @@ function determineAgeGroup(ageYears) {
 }
 
 function savePlayerProfileStorage() {
+  if (!playerProfile.systemName || LEGACY_SYSTEM_TITLES.has(playerProfile.systemName)) {
+    playerProfile.systemName = DEFAULT_PLAYER_PROFILE.systemName;
+  }
   localStorage.setItem(PLAYER_PROFILE_STORAGE_KEY, JSON.stringify(playerProfile));
 }
 
