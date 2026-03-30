@@ -4740,7 +4740,10 @@ function showPage(pageId, evt) {
   if (pageId === 'nutrition') updateRecoveryChart();
   if (pageId === 'injury') updateInjuryTable();
   if (pageId === 'load') updateLoadChart();
-  if (pageId === 'analysis') updateAnalysis();
+  if (pageId === 'analysis') {
+    updateAnalysis();
+    requestAnimationFrame(() => updateAnalysis());
+  }
   if (pageId === 'reports') updateCompleteness();
   if (pageId === 'training') updateWeeklyPlan();
   if (pageId !== 'anthropometric') updateModuleInsights(pageId);
@@ -7586,6 +7589,8 @@ window.onload = function() {
   if (initialPageId !== 'dashboard' && document.getElementById(initialPageId)) {
     showPage(initialPageId);
   }
+  updateAnalysis();
+  requestAnimationFrame(() => updateAnalysis());
   
   // 自动检查预警
   setTimeout(checkAllAlerts, 1000);
