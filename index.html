@@ -3140,6 +3140,94 @@ const dataStore = {
   training: loadStoredData('training')
 };
 
+const CONFIRMED_RECOVERY_FLAG_KEY = 'murray_confirmed_recovery_v1';
+const CONFIRMED_RECOVERY_PAYLOAD = {
+  profile: {
+    name: 'Murray Tang'
+  },
+  ageGroup: '10-11',
+  data: {
+    anthropometric: [
+      {
+        date: '2026-02-24',
+        height: 138,
+        weight: 32.35,
+        wingspan: 138.6,
+        reachHeight: 178.3,
+        handLength: null,
+        handWidth: null,
+        footLength: null,
+        footWidth: null,
+        _recovered: true,
+        _source: 'Chrome local storage fragment'
+      }
+    ],
+    power: [
+      {
+        date: '2026-02-24',
+        maxVert: 54.7,
+        broadJump: 175,
+        vertReach: 233,
+        _recovered: true,
+        _source: 'Chrome local storage fragment'
+      }
+    ],
+    speed: [
+      {
+        date: '2026-02-24',
+        sprint20m: 3.53,
+        _recovered: true,
+        _source: 'Chrome local storage fragment'
+      }
+    ]
+  }
+};
+
+function mergeRecoveredRecords(existingRecords, recoveredRecords) {
+  const merged = [...existingRecords];
+  recoveredRecords.forEach((record) => {
+    const idx = merged.findIndex(item => item?.date === record.date);
+    if (idx >= 0) {
+      merged[idx] = { ...record, ...merged[idx] };
+    } else {
+      merged.push(record);
+    }
+  });
+  return merged.sort((a, b) => String(a?.date || '').localeCompare(String(b?.date || '')));
+}
+
+function persistModuleData(key) {
+  const canonicalKey = STORAGE_KEY_MAP[key] || ('murray_' + key);
+  localStorage.setItem(canonicalKey, JSON.stringify(dataStore[key]));
+}
+
+function applyConfirmedRecoveryData() {
+  if (localStorage.getItem(CONFIRMED_RECOVERY_FLAG_KEY)) return;
+
+  Object.entries(CONFIRMED_RECOVERY_PAYLOAD.data).forEach(([key, recoveredRecords]) => {
+    if (!Array.isArray(dataStore[key])) dataStore[key] = [];
+    dataStore[key] = mergeRecoveredRecords(dataStore[key], recoveredRecords.map(normalizeRecord));
+    persistModuleData(key);
+  });
+
+  try {
+    const existingProfile = JSON.parse(localStorage.getItem('murray_player_profile') || '{}');
+    localStorage.setItem('murray_player_profile', JSON.stringify({
+      ...CONFIRMED_RECOVERY_PAYLOAD.profile,
+      ...(existingProfile || {})
+    }));
+  } catch {
+    localStorage.setItem('murray_player_profile', JSON.stringify(CONFIRMED_RECOVERY_PAYLOAD.profile));
+  }
+
+  if (!localStorage.getItem('murray_ageGroup')) {
+    localStorage.setItem('murray_ageGroup', CONFIRMED_RECOVERY_PAYLOAD.ageGroup);
+  }
+  localStorage.setItem(CONFIRMED_RECOVERY_FLAG_KEY, 'done');
+}
+
+applyConfirmedRecoveryData();
+
 const translations = {
   en: {
     'Murray Tang 专业篮球训练系统 v2.0': 'Murray Tang Professional Basketball Training System v2.0',
