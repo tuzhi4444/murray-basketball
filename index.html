@@ -600,12 +600,19 @@ tr:hover td { background: var(--surface2); }
                   <th>BMI</th>
                   <th>臂展</th>
                   <th>摸高</th>
+                  <th>手长/手宽</th>
+                  <th>足长/足宽</th>
                   <th>操作</th>
                 </tr>
               </thead>
               <tbody id="anthroTable"></tbody>
             </table>
           </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title"><span class="icon">🎯</span>测量对比与下一阶段目标</div>
+          <div id="anthroInsights"></div>
         </div>
       </div>
       
@@ -4254,7 +4261,7 @@ function showPage(pageId, evt) {
   
   // 更新页面特定内容
   if (pageId === 'dashboard') updateDashboard();
-  if (pageId === 'anthropometric') updateAnthroTable();
+  if (pageId === 'anthropometric') { updateAnthroTable(); updateAnthroInsights(); }
   if (pageId === 'growth') { updateGrowthTable(); updateGrowthChart(); }
   if (pageId === 'bodycomp') updateBodycompChart();
   if (pageId === 'power') updatePowerChart();
@@ -4594,6 +4601,8 @@ function updateAnthroTable() {
   tbody.innerHTML = dataStore.anthropometric.map((d, index, arr) => {
     const bmi = d.weight && d.height ? (d.weight / ((d.height/100) ** 2)).toFixed(1) : '--';
     const reachHeight = d.reachHeight ?? d.reach ?? '--';
+    const handMetrics = [d.handLength ?? '--', d.handWidth ?? '--'].join(' / ');
+    const footMetrics = [d.footLength ?? '--', d.footWidth ?? '--'].join(' / ');
     return `<tr>
       <td>${d.date}</td>
       <td>${d.height || '--'}</td>
@@ -4601,9 +4610,85 @@ function updateAnthroTable() {
       <td>${bmi}</td>
       <td>${d.wingspan || '--'}</td>
       <td>${reachHeight}</td>
+      <td>${handMetrics}</td>
+      <td>${footMetrics}</td>
       <td><button class="btn btn-sm btn-secondary" onclick="deleteDataEntry('anthropometric', ${arr.length - 1 - index})">删除</button></td>
     </tr>`;
   }).reverse().join('');
+}
+
+function formatAnthroDelta(current, previous, suffix = '') {
+  if (!Number.isFinite(current) || !Number.isFinite(previous)) return t('暂无上次对比');
+  const delta = current - previous;
+  if (delta === 0) return `0${suffix}`;
+  return `${delta > 0 ? '+' : ''}${delta.toFixed(1)}${suffix}`;
+}
+
+function updateAnthroInsights() {
+  const container = document.getElementById('anthroInsights');
+  if (!container) return;
+
+  const latest = dataStore.anthropometric[dataStore.anthropometric.length - 1];
+  const previous = dataStore.anthropometric[dataStore.anthropometric.length - 2];
+  if (!latest) {
+    container.innerHTML = `
+      <div class="suggestion-card">
+        <div class="suggestion-title">${t('暂无身体测量记录')}</div>
+        <ul class="suggestion-list">
+          <li>${t('先录入身高、体重、臂展、摸高和详细测量，系统才会生成对比和目标建议。')}</li>
+        </ul>
+      </div>
+    `;
+    applyTranslations(container);
+    return;
+  }
+
+  const reachHeight = latest.reachHeight ?? latest.reach ?? null;
+  const prevReachHeight = previous ? (previous.reachHeight ?? previous.reach ?? null) : null;
+  const nextReachGoal = Number.isFinite(reachHeight) ? (reachHeight + 2).toFixed(1) : null;
+  const nextWingspanGoal = Number.isFinite(latest.wingspan) ? (latest.wingspan + 1.5).toFixed(1) : null;
+  const effortTips = [];
+  if (!Number.isFinite(reachHeight) || Number.isFinite(reachHeight) && reachHeight < 185) {
+    effortTips.push(t('每周安排2次肩背灵活性 + 1次踝髋活动，配合摸高触点练习，提高站立摸高表现。'));
+  }
+  if (!Number.isFinite(latest.wingspan) || latest.wingspan < latest.height) {
+    effortTips.push(t('继续跟踪臂展和站立摸高，重点观察上肢伸展能力和姿态控制。'));
+  }
+  if (Number.isFinite(latest.handLength) || Number.isFinite(latest.handWidth)) {
+    effortTips.push(t('手部尺寸已经记录，后续可结合持球稳定性和单手控球训练一起评估。'));
+  }
+  if (effortTips.length === 0) {
+    effortTips.push(t('当前详细测量较完整，建议每4-6周复测一次，重点观察摸高、臂展和体重变化。'));
+  }
+
+  container.innerHTML = `
+    <div class="two-col">
+      <div class="suggestion-card priority-high">
+        <div class="suggestion-title">📊 ${t('和上一次对比')}</div>
+        <ul class="suggestion-list">
+          <li>${t('身高变化')}: ${formatAnthroDelta(latest.height, previous?.height, 'cm')}</li>
+          <li>${t('体重变化')}: ${formatAnthroDelta(latest.weight, previous?.weight, 'kg')}</li>
+          <li>${t('臂展变化')}: ${formatAnthroDelta(latest.wingspan, previous?.wingspan, 'cm')}</li>
+          <li>${t('摸高变化')}: ${formatAnthroDelta(reachHeight, prevReachHeight, 'cm')}</li>
+        </ul>
+      </div>
+      <div class="suggestion-card priority-medium">
+        <div class="suggestion-title">🎯 ${t('下一阶段目标预测')}</div>
+        <ul class="suggestion-list">
+          <li>${t('下次摸高目标')}: ${nextReachGoal ? `${nextReachGoal}cm` : t('先完成摸高记录')}</li>
+          <li>${t('下次臂展目标')}: ${nextWingspanGoal ? `${nextWingspanGoal}cm` : t('先完成臂展记录')}</li>
+          <li>${t('目标周期')}: ${t('建议按4-6周为一个测量周期，观察稳定增长而不是只看单次波动。')}</li>
+        </ul>
+      </div>
+    </div>
+    <div class="suggestion-card">
+      <div class="suggestion-title">🧭 ${t('要达到目标，可以这样做')}</div>
+      <ul class="suggestion-list">
+        ${effortTips.map(tip => `<li>${tip}</li>`).join('')}
+      </ul>
+    </div>
+  `;
+  applyTranslations(container);
 }
 
 function updateGrowthTable() {
@@ -5717,6 +5802,9 @@ function buildComprehensiveReport() {
     `身高: ${anthro.height ?? '--'} cm`,
     `体重: ${anthro.weight ?? '--'} kg`,
     `臂展: ${anthro.wingspan ?? '--'} cm`,
+    `站立摸高: ${anthro.reachHeight ?? anthro.reach ?? '--'} cm`,
+    `手长/手宽: ${anthro.handLength ?? '--'} / ${anthro.handWidth ?? '--'} cm`,
+    `足长/足宽: ${anthro.footLength ?? '--'} / ${anthro.footWidth ?? '--'} cm`,
     '',
     '二、体能表现',
     `助跑纵跳: ${power.maxVert ?? '--'} cm`,
