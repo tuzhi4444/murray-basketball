@@ -238,7 +238,7 @@ tr:hover td { background: var(--surface2); }
   <header class="header">
     <div class="header-logo">
       <span class="ball">🏀</span>
-      <span>Murray Tang 专业篮球训练系统 v2.0</span>
+      <span id="appTitle">青少年篮球训练系统 Pro</span>
     </div>
     <div class="header-actions">
       <div id="languageSwitcher" class="language-switcher">
@@ -447,15 +447,13 @@ tr:hover td { background: var(--surface2); }
       <!-- 总览面板 -->
       <div id="dashboard" class="page active">
         <div class="player-header">
-          <div class="player-avatar">MT</div>
+          <div class="player-avatar" id="playerAvatar">MT</div>
           <div class="player-info">
-            <h2>Murray Tang</h2>
-            <p>10岁2个月 | Sub-10组 | 训练时长: 2年</p>
-            <p>教练: Miguel Salvador | 位置: 后卫(建议)</p>
-            <div class="player-tags">
-              <span class="badge badge-green">爆发力优秀</span>
-              <span class="badge badge-green">速度优秀</span>
-              <span class="badge badge-yellow">身高需监测</span>
+            <h2 id="playerName">球员档案</h2>
+            <p id="playerSummary">请先完善球员档案，系统会自动同步年龄段与训练建议。</p>
+            <p id="playerMeta">教练: 未设置 | 位置: 未设置</p>
+            <div class="player-tags" id="playerTags">
+              <span class="badge badge-gray">等待建立档案</span>
             </div>
           </div>
         </div>
@@ -675,6 +673,7 @@ tr:hover td { background: var(--surface2); }
                   <th>月增长</th>
                   <th>PHV状态</th>
                   <th>预测身高</th>
+                  <th>操作</th>
                 </tr>
               </thead>
               <tbody id="growthTable"></tbody>
@@ -1096,6 +1095,7 @@ tr:hover td { background: var(--surface2); }
                   <th>俯卧撑</th>
                   <th>旋转</th>
                   <th>风险</th>
+                  <th>操作</th>
                 </tr>
               </thead>
               <tbody id="fmsTable"></tbody>
@@ -1482,6 +1482,7 @@ tr:hover td { background: var(--surface2); }
                   <th>篮板</th>
                   <th>助攻</th>
                   <th>效率</th>
+                  <th>操作</th>
                 </tr>
               </thead>
               <tbody id="gameTable"></tbody>
@@ -1763,6 +1764,7 @@ tr:hover td { background: var(--surface2); }
                   <th>严重程度</th>
                   <th>缺席天数</th>
                   <th>复发</th>
+                  <th>操作</th>
                 </tr>
               </thead>
               <tbody id="injuryTable"></tbody>
@@ -1918,6 +1920,43 @@ tr:hover td { background: var(--surface2); }
       <!-- 报告导出 -->
       <div id="reports" class="page">
         <div class="card">
+          <div class="card-title"><span class="icon">👤</span>球员档案设置</div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>球员姓名</label>
+              <input type="text" id="profileName" placeholder="例如：Murray Tang">
+            </div>
+            <div class="form-group">
+              <label>出生日期</label>
+              <input type="date" id="profileBirthDate">
+            </div>
+            <div class="form-group">
+              <label>球队 / 组别</label>
+              <input type="text" id="profileTeam" placeholder="例如：Sub-10组">
+            </div>
+            <div class="form-group">
+              <label>训练时长（年）</label>
+              <input type="number" id="profileTrainingYears" min="0" max="20" step="0.5" placeholder="例如：2">
+            </div>
+            <div class="form-group">
+              <label>教练</label>
+              <input type="text" id="profileCoach" placeholder="例如：Miguel Salvador">
+            </div>
+            <div class="form-group">
+              <label>场上位置</label>
+              <input type="text" id="profilePosition" placeholder="例如：后卫">
+            </div>
+            <div class="form-group full">
+              <label>备注</label>
+              <textarea id="profileNotes" rows="3" placeholder="记录球员目标、限制或当前训练重点"></textarea>
+            </div>
+          </div>
+          <div class="export-buttons">
+            <button class="btn btn-primary" onclick="savePlayerProfile()">💾 保存球员档案</button>
+          </div>
+        </div>
+
+        <div class="card">
           <div class="card-title"><span class="icon">📄</span>数据导出与分享</div>
           
           <div class="export-buttons">
@@ -1927,34 +1966,37 @@ tr:hover td { background: var(--surface2); }
             <button class="btn btn-danger" onclick="clearAllData()">🗑️ 清空所有数据</button>
           </div>
           
-          <div class="section-title">多设备同步与分享</div>
+          <div class="section-title">跨设备迁移与分享</div>
           <div class="suggestion-card">
-            <div class="suggestion-title">📱 同步码同步 (推荐)</div>
+            <div class="suggestion-title">📦 迁移文本（跨设备可用）</div>
             <ul class="suggestion-list">
-              <li>生成4位同步码，在其他设备输入即可同步</li>
-              <li>同步码24小时内有效</li>
-              <li>适用于家长手机、教练平板、家里电脑之间同步</li>
+              <li>生成一段迁移文本，复制到另一台设备即可导入</li>
+              <li>适用于手机、平板、电脑之间转移数据</li>
+              <li>不会依赖当前浏览器的本地缓存</li>
             </ul>
           </div>
           <div class="export-buttons">
-            <button class="btn btn-primary" onclick="generateSyncCode()">🔄 生成同步码</button>
-            <button class="btn btn-secondary" onclick="showSyncInput()">📥 输入同步码</button>
+            <button class="btn btn-primary" onclick="generateSyncCode()">📦 生成迁移文本</button>
+            <button class="btn btn-secondary" onclick="showSyncInput()">📥 导入迁移文本</button>
           </div>
           <div id="syncCodeDisplay" style="margin-top: 16px; display: none;">
-            <div style="background: linear-gradient(135deg, #1a5fb4, #26a269); padding: 20px; border-radius: 12px; text-align: center; color: white;">
-              <div style="font-size: 14px; margin-bottom: 8px;">您的同步码</div>
-              <div id="syncCodeValue" style="font-size: 48px; font-weight: bold; letter-spacing: 8px;">----</div>
-              <div style="font-size: 12px; margin-top: 8px; opacity: 0.8;">24小时内有效</div>
+            <div style="background: linear-gradient(135deg, #1a5fb4, #26a269); padding: 20px; border-radius: 12px; color: white;">
+              <div style="font-size: 14px; margin-bottom: 8px;">迁移文本</div>
+              <textarea id="syncCodeValue" rows="6" readonly style="width:100%;border:none;border-radius:10px;padding:12px;font-size:12px;line-height:1.5;resize:vertical;color:#0f172a;"></textarea>
+              <div style="font-size: 12px; margin-top: 8px; opacity: 0.8;">复制后可在另一台设备粘贴导入</div>
+              <div class="export-buttons" style="margin-top:12px;">
+                <button class="btn btn-secondary" onclick="copyTransferPackage()">复制迁移文本</button>
+              </div>
             </div>
           </div>
           <div id="syncInputArea" style="margin-top: 16px; display: none;">
             <div class="form-grid">
-              <div class="form-group">
-                <label>输入同步码</label>
-                <input type="text" id="inputSyncCode" maxlength="4" placeholder="4位字母数字" style="font-size: 24px; letter-spacing: 8px; text-align: center; text-transform: uppercase;">
+              <div class="form-group full">
+                <label>粘贴迁移文本</label>
+                <textarea id="inputSyncCode" rows="6" placeholder="在另一台设备上生成迁移文本后，粘贴到这里"></textarea>
               </div>
             </div>
-            <button class="btn btn-primary" onclick="syncWithCode()">开始同步</button>
+            <button class="btn btn-primary" onclick="syncWithCode()">开始导入</button>
           </div>
 
           <div class="suggestion-card" style="margin-top: 20px;">
@@ -2229,6 +2271,7 @@ tr:hover td { background: var(--surface2); }
                   <th>年龄</th>
                   <th>链接/位置</th>
                   <th>点评</th>
+                  <th>操作</th>
                 </tr>
               </thead>
               <tbody id="videoTable">
@@ -2947,31 +2990,134 @@ tr:hover td { background: var(--surface2); }
 
 <script>
 // 数据存储对象
+const STORAGE_KEY_MAP = {
+  anthropometric: 'murray_anthro',
+  growth: 'murray_growth',
+  bodycomp: 'murray_bodycomp',
+  power: 'murray_power',
+  speed: 'murray_speed',
+  agility: 'murray_agility',
+  endurance: 'murray_endurance',
+  strength: 'murray_strength',
+  fms: 'murray_fms',
+  shooting: 'murray_shooting',
+  heatmap: 'murray_heatmap',
+  biomech: 'murray_biomech',
+  dribbling: 'murray_dribbling',
+  passing: 'murray_passing',
+  defense: 'murray_defense',
+  game: 'murray_game',
+  cognitive: 'murray_cognitive',
+  psychology: 'murray_psych',
+  nutrition: 'murray_nutrition',
+  injury: 'murray_injury',
+  load: 'murray_load',
+  videos: 'murray_videos',
+  milestones: 'murray_milestones',
+  training: 'murray_training'
+};
+
+const LEGACY_FIELD_KEY_MAP = {
+  maxvert: 'maxVert',
+  broadjump: 'broadJump',
+  vertreach: 'vertReach',
+  consecutivejumps: 'consecutiveJumps',
+  bodfat: 'bodyFat',
+  musclemass: 'muscleMass',
+  leanmass: 'leanMass',
+  visceralfat: 'visceralFat',
+  freethrow: 'freeThrow',
+  dribbleshoot: 'dribbleShoot',
+  catchshoot: 'catchShoot',
+  movingshoot: 'movingShoot',
+  zonemidright: 'zoneMidRight',
+  zonemidtop: 'zoneMidTop',
+  zonemidleft: 'zoneMidLeft',
+  zone3right: 'zone3Right',
+  zone3top: 'zone3Top',
+  zone3left: 'zone3Left',
+  releasespeed: 'releaseSpeed',
+  releaseangle: 'releaseAngle',
+  releasespin: 'releaseSpin',
+  jumpheight: 'jumpHeight',
+  dribbleright: 'dribbleRight',
+  dribbleleft: 'dribbleLeft',
+  dribblecross: 'dribbleCross',
+  behindback: 'behindBack',
+  betweenlegs: 'betweenLegs',
+  spinmove: 'spinMove',
+  twoball: 'twoBall',
+  chestpass: 'chestPass',
+  bouncepass: 'bouncePass',
+  overheadpass: 'overheadPass',
+  sidepass: 'sidePass',
+  behindpass: 'behindPass',
+  fullcourtpass: 'fullCourtPass',
+  passdecision: 'passDecision',
+  slideleft: 'slideLeft',
+  slideright: 'slideRight',
+  closeoutspeed: 'closeoutSpeed',
+  lateralquickness: 'lateralQuickness',
+  blocksout: 'blocksOut',
+  reactiontime: 'reactionTime',
+  sleepquality: 'sleepQuality',
+  sorenesslevel: 'sorenessLevel',
+  hydrationlevel: 'hydrationLevel',
+  restinghr: 'restingHr',
+  trainingduration: 'trainingDuration',
+  trainingtype: 'trainingType',
+  sprintcount: 'sprintCount',
+  jumpcount: 'jumpCount',
+  avgheartrate: 'avgHeartRate',
+  maxheartrate: 'maxHeartRate',
+  injurytype: 'injuryType',
+  injurylocation: 'injuryLocation',
+  painlevel: 'painLevel',
+  recoverydays: 'recoveryDays',
+  returntoplay: 'returnToPlay'
+};
+
+function normalizeRecord(record) {
+  if (!record || typeof record !== 'object' || Array.isArray(record)) return record;
+  const normalized = {};
+  Object.entries(record).forEach(([key, value]) => {
+    normalized[LEGACY_FIELD_KEY_MAP[key] || key] = value;
+  });
+  return normalized;
+}
+
+function loadStoredData(key) {
+  const canonicalKey = STORAGE_KEY_MAP[key] || ('murray_' + key);
+  const legacyKey = 'murray_' + key;
+  const parsed = JSON.parse(localStorage.getItem(canonicalKey) || localStorage.getItem(legacyKey) || '[]');
+  return Array.isArray(parsed) ? parsed.map(normalizeRecord) : [];
+}
+
 const dataStore = {
-  anthropometric: JSON.parse(localStorage.getItem('murray_anthro') || '[]'),
-  growth: JSON.parse(localStorage.getItem('murray_growth') || '[]'),
-  bodycomp: JSON.parse(localStorage.getItem('murray_bodycomp') || '[]'),
-  power: JSON.parse(localStorage.getItem('murray_power') || '[]'),
-  speed: JSON.parse(localStorage.getItem('murray_speed') || '[]'),
-  agility: JSON.parse(localStorage.getItem('murray_agility') || '[]'),
-  endurance: JSON.parse(localStorage.getItem('murray_endurance') || '[]'),
-  strength: JSON.parse(localStorage.getItem('murray_strength') || '[]'),
-  fms: JSON.parse(localStorage.getItem('murray_fms') || '[]'),
-  shooting: JSON.parse(localStorage.getItem('murray_shooting') || '[]'),
-  heatmap: JSON.parse(localStorage.getItem('murray_heatmap') || '[]'),
-  biomech: JSON.parse(localStorage.getItem('murray_biomech') || '[]'),
-  dribbling: JSON.parse(localStorage.getItem('murray_dribbling') || '[]'),
-  passing: JSON.parse(localStorage.getItem('murray_passing') || '[]'),
-  defense: JSON.parse(localStorage.getItem('murray_defense') || '[]'),
-  game: JSON.parse(localStorage.getItem('murray_game') || '[]'),
-  cognitive: JSON.parse(localStorage.getItem('murray_cognitive') || '[]'),
-  psychology: JSON.parse(localStorage.getItem('murray_psych') || '[]'),
-  nutrition: JSON.parse(localStorage.getItem('murray_nutrition') || '[]'),
-  injury: JSON.parse(localStorage.getItem('murray_injury') || '[]'),
-  load: JSON.parse(localStorage.getItem('murray_load') || '[]'),
-  videos: JSON.parse(localStorage.getItem('murray_videos') || '[]'),
-  milestones: JSON.parse(localStorage.getItem('murray_milestones') || '[]'),
-  training: JSON.parse(localStorage.getItem('murray_training') || '[]')
+  anthropometric: loadStoredData('anthropometric'),
+  growth: loadStoredData('growth'),
+  bodycomp: loadStoredData('bodycomp'),
+  power: loadStoredData('power'),
+  speed: loadStoredData('speed'),
+  agility: loadStoredData('agility'),
+  endurance: loadStoredData('endurance'),
+  strength: loadStoredData('strength'),
+  fms: loadStoredData('fms'),
+  shooting: loadStoredData('shooting'),
+  heatmap: loadStoredData('heatmap'),
+  biomech: loadStoredData('biomech'),
+  dribbling: loadStoredData('dribbling'),
+  passing: loadStoredData('passing'),
+  defense: loadStoredData('defense'),
+  game: loadStoredData('game'),
+  cognitive: loadStoredData('cognitive'),
+  psychology: loadStoredData('psychology'),
+  nutrition: loadStoredData('nutrition'),
+  injury: loadStoredData('injury'),
+  load: loadStoredData('load'),
+  videos: loadStoredData('videos'),
+  milestones: loadStoredData('milestones'),
+  training: loadStoredData('training')
 };
 
 const translations = {
@@ -3636,11 +3782,256 @@ let currentTrainingDay = 0;
 const generatedTranslations = window.MURRAY_TRANSLATIONS_GENERATED || { en: {}, pt: {} };
 const replacementCache = { en: new Map(), pt: new Map() };
 const replacementKeys = { en: null, pt: null };
+const PLAYER_PROFILE_STORAGE_KEY = 'murray_player_profile';
+const DEFAULT_PLAYER_PROFILE = {
+  systemName: '青少年篮球训练系统 Pro',
+  name: 'Murray Tang',
+  birthDate: '2016-01-08',
+  team: 'Sub-10组',
+  trainingYears: '2',
+  coach: 'Miguel Salvador',
+  position: '后卫(建议)',
+  notes: ''
+};
+let playerProfile = loadPlayerProfile();
+
+function loadPlayerProfile() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(PLAYER_PROFILE_STORAGE_KEY) || '{}');
+    return { ...DEFAULT_PLAYER_PROFILE, ...(parsed || {}) };
+  } catch {
+    return { ...DEFAULT_PLAYER_PROFILE };
+  }
+}
 
 function t(text) {
   if (currentLang === 'zh') return text;
   return translations[currentLang]?.[text] || generatedTranslations[currentLang]?.[text] || text;
 }
+
+function getPlayerName() {
+  return playerProfile.name || t('球员档案');
+}
+
+function getSystemTitle() {
+  return playerProfile.systemName || DEFAULT_PLAYER_PROFILE.systemName;
+}
+
+function getPlayerBirthDate() {
+  return playerProfile.birthDate || DEFAULT_PLAYER_PROFILE.birthDate;
+}
+
+function getPlayerAgeYears(referenceDate = new Date()) {
+  const birthDate = getPlayerBirthDate();
+  if (!birthDate) return null;
+  const birth = new Date(birthDate);
+  const current = new Date(referenceDate);
+  if (Number.isNaN(birth.getTime()) || Number.isNaN(current.getTime()) || current < birth) return null;
+  return (current - birth) / (365.25 * 24 * 60 * 60 * 1000);
+}
+
+function formatPlayerAge(referenceDate = new Date()) {
+  const birthDate = getPlayerBirthDate();
+  if (!birthDate) return t('年龄未设置');
+  const birth = new Date(birthDate);
+  const current = new Date(referenceDate);
+  if (Number.isNaN(birth.getTime()) || Number.isNaN(current.getTime()) || current < birth) return t('年龄未设置');
+  let years = current.getFullYear() - birth.getFullYear();
+  let months = current.getMonth() - birth.getMonth();
+  if (current.getDate() < birth.getDate()) months -= 1;
+  if (months < 0) {
+    years -= 1;
+    months += 12;
+  }
+  return `${Math.max(0, years)}${t('岁')}${months}${t('个月')}`;
+}
+
+function determineAgeGroup(ageYears) {
+  if (!Number.isFinite(ageYears)) return localStorage.getItem('murray_ageGroup') || '10-11';
+  if (ageYears >= 16) return '16';
+  if (ageYears >= 14) return '14-15';
+  if (ageYears >= 12) return '12-13';
+  return '10-11';
+}
+
+function savePlayerProfileStorage() {
+  localStorage.setItem(PLAYER_PROFILE_STORAGE_KEY, JSON.stringify(playerProfile));
+}
+
+function renderProfileForm() {
+  const fieldMap = {
+    profileName: 'name',
+    profileBirthDate: 'birthDate',
+    profileTeam: 'team',
+    profileTrainingYears: 'trainingYears',
+    profileCoach: 'coach',
+    profilePosition: 'position',
+    profileNotes: 'notes'
+  };
+  Object.entries(fieldMap).forEach(([id, key]) => {
+    const input = document.getElementById(id);
+    if (input) input.value = playerProfile[key] ?? '';
+  });
+}
+
+function updatePlayerProfileUI() {
+  const appTitle = document.getElementById('appTitle');
+  if (appTitle) appTitle.textContent = getSystemTitle();
+
+  const name = getPlayerName();
+  const playerNameEl = document.getElementById('playerName');
+  if (playerNameEl) playerNameEl.textContent = name;
+
+  const avatar = document.getElementById('playerAvatar');
+  if (avatar) {
+    const initials = name
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map(part => part[0]?.toUpperCase() || '')
+      .join('') || 'P';
+    avatar.textContent = initials;
+  }
+
+  const ageLabel = formatPlayerAge();
+  const summary = [ageLabel, playerProfile.team || t('球队未设置'), `${t('训练时长')}: ${playerProfile.trainingYears || '--'}${t('年')}`].join(' | ');
+  const playerSummary = document.getElementById('playerSummary');
+  if (playerSummary) playerSummary.textContent = summary;
+
+  const playerMeta = document.getElementById('playerMeta');
+  if (playerMeta) {
+    playerMeta.textContent = `${t('教练')}: ${playerProfile.coach || t('未设置')} | ${t('位置')}: ${playerProfile.position || t('未设置')}`;
+  }
+
+  const playerTags = document.getElementById('playerTags');
+  if (playerTags) {
+    const anthro = dataStore.anthropometric[dataStore.anthropometric.length - 1] || {};
+    const power = dataStore.power[dataStore.power.length - 1] || {};
+    const speed = dataStore.speed[dataStore.speed.length - 1] || {};
+    const tags = [];
+    if (Number.isFinite(power.maxVert) && power.maxVert >= 55) tags.push({ text: t('爆发力优秀'), className: 'badge badge-green' });
+    if (Number.isFinite(speed.sprint20m) && speed.sprint20m <= 3.6) tags.push({ text: t('速度优秀'), className: 'badge badge-green' });
+    if (Number.isFinite(anthro.height) && anthro.height < 140) tags.push({ text: t('身高需监测'), className: 'badge badge-yellow' });
+    if (tags.length === 0) tags.push({ text: t('等待更多数据'), className: 'badge badge-gray' });
+    playerTags.innerHTML = tags.map(tag => `<span class="${tag.className}">${tag.text}</span>`).join('');
+  }
+
+  document.title = `${getSystemTitle()} - ${name}`;
+}
+
+function savePlayerProfile() {
+  playerProfile = {
+    ...playerProfile,
+    name: document.getElementById('profileName')?.value.trim() || DEFAULT_PLAYER_PROFILE.name,
+    birthDate: document.getElementById('profileBirthDate')?.value || DEFAULT_PLAYER_PROFILE.birthDate,
+    team: document.getElementById('profileTeam')?.value.trim() || '',
+    trainingYears: document.getElementById('profileTrainingYears')?.value || '',
+    coach: document.getElementById('profileCoach')?.value.trim() || '',
+    position: document.getElementById('profilePosition')?.value.trim() || '',
+    notes: document.getElementById('profileNotes')?.value.trim() || ''
+  };
+  savePlayerProfileStorage();
+  currentAgeGroup = determineAgeGroup(getPlayerAgeYears());
+  localStorage.setItem('murray_ageGroup', currentAgeGroup);
+  const selector = document.getElementById('ageGroupSelector');
+  if (selector) selector.value = currentAgeGroup;
+  updatePlayerProfileUI();
+  updateSchedulePage();
+  updateGoalsTable();
+  alert(t('球员档案已保存！'));
+}
+
+function ensureUiShell() {
+  if (document.getElementById('appToast')) return;
+  const shell = document.createElement('div');
+  shell.innerHTML = `
+    <div id="appToast" style="position:fixed;top:20px;right:20px;z-index:2000;min-width:260px;max-width:420px;padding:14px 16px;border-radius:14px;background:#0f172a;color:#fff;box-shadow:0 18px 48px rgba(15,23,42,.28);opacity:0;transform:translateY(-12px);pointer-events:none;transition:all .22s ease;"></div>
+    <div id="appModal" style="position:fixed;inset:0;z-index:2100;background:rgba(15,23,42,.55);display:none;align-items:center;justify-content:center;padding:24px;">
+      <div style="width:min(520px,100%);background:#fff;border-radius:18px;padding:22px;box-shadow:0 28px 60px rgba(15,23,42,.28);">
+        <div id="appModalTitle" style="font-size:20px;font-weight:700;color:#0f172a;margin-bottom:8px;"></div>
+        <div id="appModalMessage" style="font-size:14px;line-height:1.7;color:#334155;white-space:pre-wrap;"></div>
+        <textarea id="appModalTextarea" rows="8" style="display:none;width:100%;margin-top:14px;border:1px solid #cbd5e1;border-radius:12px;padding:12px;font-size:13px;line-height:1.6;color:#0f172a;"></textarea>
+        <div id="appModalActions" style="display:flex;justify-content:flex-end;gap:12px;margin-top:18px;"></div>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(shell);
+}
+
+function showToast(message, type = 'info') {
+  ensureUiShell();
+  const toast = document.getElementById('appToast');
+  if (!toast) return;
+  const palette = {
+    info: { bg: '#0f172a', color: '#fff' },
+    success: { bg: '#166534', color: '#fff' },
+    warning: { bg: '#b45309', color: '#fff' }
+  };
+  const theme = palette[type] || palette.info;
+  toast.textContent = String(message || '');
+  toast.style.background = theme.bg;
+  toast.style.color = theme.color;
+  toast.style.opacity = '1';
+  toast.style.transform = 'translateY(0)';
+  clearTimeout(showToast._timer);
+  showToast._timer = setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateY(-12px)';
+  }, 2600);
+}
+
+function showModal({ title = '', message = '', textValue = '', showTextarea = false, confirmText = '确定', cancelText = '取消', singleButton = false }) {
+  ensureUiShell();
+  return new Promise((resolve) => {
+    const modal = document.getElementById('appModal');
+    const titleEl = document.getElementById('appModalTitle');
+    const messageEl = document.getElementById('appModalMessage');
+    const textarea = document.getElementById('appModalTextarea');
+    const actions = document.getElementById('appModalActions');
+    if (!modal || !titleEl || !messageEl || !textarea || !actions) return resolve(false);
+
+    titleEl.textContent = title;
+    messageEl.textContent = message;
+    textarea.style.display = showTextarea ? 'block' : 'none';
+    textarea.value = textValue;
+    actions.innerHTML = '';
+
+    const close = (result) => {
+      modal.style.display = 'none';
+      resolve(result);
+    };
+
+    if (!singleButton) {
+      const cancelBtn = document.createElement('button');
+      cancelBtn.className = 'btn btn-secondary';
+      cancelBtn.textContent = cancelText;
+      cancelBtn.onclick = () => close(false);
+      actions.appendChild(cancelBtn);
+    }
+
+    const confirmBtn = document.createElement('button');
+    confirmBtn.className = 'btn btn-primary';
+    confirmBtn.textContent = confirmText;
+    confirmBtn.onclick = async () => {
+      if (showTextarea && navigator.clipboard?.writeText) {
+        try {
+          await navigator.clipboard.writeText(textarea.value);
+          showToast(t('内容已复制到剪贴板'), 'success');
+        } catch {}
+      }
+      close(showTextarea ? textarea.value : true);
+    };
+    actions.appendChild(confirmBtn);
+
+    modal.style.display = 'flex';
+  });
+}
+
+window.alert = (message) => {
+  const text = String(message || '');
+  const type = /错误|失败|无效|请选择|请输入|不可恢复/.test(text) ? 'warning' : 'success';
+  showToast(text, type);
+};
 
 function getReplacementKeys(lang) {
   if (lang === 'zh') return [];
@@ -3730,7 +4121,51 @@ if (dataStore.endurance.length === 0) {
 }
 
 function saveData(key) {
-  localStorage.setItem('murray_' + key, JSON.stringify(dataStore[key]));
+  const canonicalKey = STORAGE_KEY_MAP[key] || ('murray_' + key);
+  localStorage.setItem(canonicalKey, JSON.stringify(dataStore[key]));
+}
+
+function getFieldKey(formId, inputId) {
+  const prefix = formId.replace('Form', '');
+  let key = inputId;
+  if (key.startsWith(prefix)) key = key.slice(prefix.length);
+  if (!key) return inputId;
+  key = key.charAt(0).toLowerCase() + key.slice(1);
+  return LEGACY_FIELD_KEY_MAP[key] || key;
+}
+
+Object.keys(dataStore).forEach((key) => {
+  if (Array.isArray(dataStore[key])) {
+    dataStore[key] = dataStore[key].map(normalizeRecord);
+    saveData(key);
+  }
+});
+
+function refreshActivePageView() {
+  updatePlayerProfileUI();
+  updateDashboard();
+  updateGoalsTable();
+  const activePageId = document.querySelector('.page.active')?.id;
+  if (activePageId) showPage(activePageId);
+}
+
+async function deleteDataEntry(dataKey, index) {
+  if (!Array.isArray(dataStore[dataKey])) return;
+  if (index < 0 || index >= dataStore[dataKey].length) return;
+  const confirmed = await showModal({
+    title: t('删除记录'),
+    message: t('确定要删除这条记录吗？'),
+    confirmText: t('删除'),
+    cancelText: t('取消')
+  });
+  if (!confirmed) return;
+  dataStore[dataKey].splice(index, 1);
+  saveData(dataKey);
+  refreshActivePageView();
+}
+
+function deleteMilestone(index) {
+  deleteDataEntry('milestones', index);
 }
 
 function updateAgeGroupSelectorLabels() {
@@ -3777,7 +4212,7 @@ function translateTextNode(node) {
 function applyTranslations(root = document.body) {
   if (!root) return;
   isApplyingTranslations = true;
-  document.title = t('Murray Tang 专业篮球训练系统 v2.0');
+  document.title = `${getSystemTitle()} - ${getPlayerName()}`;
   document.documentElement.lang = currentLang === 'zh' ? 'zh-CN' : currentLang;
 
   const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
@@ -3809,6 +4244,7 @@ function applyTranslations(root = document.body) {
 
   updateAgeGroupSelectorLabels();
   updateLanguageLinks();
+  updatePlayerProfileUI();
   isApplyingTranslations = false;
 }
 
@@ -3924,6 +4360,7 @@ function updateDashboard() {
   document.getElementById('dashYoYo').textContent = endurance.yoyoLevel || '--';
   document.getElementById('dashSleep').textContent = nutrition.sleepQuality || '--';
   
+  updatePlayerProfileUI();
   updateRadarChart();
   updateTrendChart();
 }
@@ -3961,7 +4398,7 @@ function updateRadarChart() {
     data: {
       labels: [t('爆发力'), t('速度'), t('耐力'), t('投篮'), 'FMS', t('技术')],
       datasets: [{
-        label: 'Murray Tang',
+        label: getPlayerName(),
         data: [jumpScore, speedScore, enduranceScore, shootingScore, fmsScore, 60],
         backgroundColor: 'rgba(249, 115, 22, 0.2)',
         borderColor: 'rgba(249, 115, 22, 1)',
@@ -4015,13 +4452,14 @@ function setupForm(formId, dataKey, extraProcessing) {
   
   form.addEventListener('submit', function(e) {
     e.preventDefault();
-    const formData = new FormData(form);
-    const data = { date: formData.get(formId.replace('Form', 'Date')) };
+    const dateInput = form.querySelector('input[type="date"]');
+    const dateInputId = dateInput?.id;
+    const data = { date: dateInput?.value || '' };
     
     form.querySelectorAll('input, select, textarea').forEach(input => {
-      if (input.id && input.id !== formId.replace('Form', 'Date')) {
+      if (input.id && input.id !== dateInputId) {
         const val = input.type === 'number' ? (input.step && input.step.includes('.') ? parseFloat(input.value) : parseInt(input.value)) : input.value;
-        if (val || val === 0) data[input.id.replace(formId.replace('Form', ''), '').toLowerCase()] = val;
+        if (val || val === 0) data[getFieldKey(formId, input.id)] = val;
       }
     });
     
@@ -4032,8 +4470,9 @@ function setupForm(formId, dataKey, extraProcessing) {
     saveData(dataKey);
     
     alert('数据已保存！');
+    refreshActivePageView();
     form.reset();
-    document.getElementById(formId.replace('Form', 'Date')).value = new Date().toISOString().split('T')[0];
+    if (dateInput) dateInput.value = new Date().toISOString().split('T')[0];
   });
 }
 
@@ -4083,6 +4522,7 @@ document.getElementById('fmsForm')?.addEventListener('submit', function(e) {
   saveData('fms');
   updateFMSTable();
   alert('FMS数据已保存！');
+  refreshActivePageView();
 });
 
 // 其他表单设置
@@ -4125,6 +4565,7 @@ document.getElementById('gameForm')?.addEventListener('submit', function(e) {
   saveData('game');
   updateGameTable();
   alert('比赛数据已保存！');
+  refreshActivePageView();
   this.reset();
 });
 
@@ -4145,6 +4586,7 @@ document.getElementById('injuryForm')?.addEventListener('submit', function(e) {
   saveData('injury');
   updateInjuryTable();
   alert('伤病记录已保存！');
+  refreshActivePageView();
   this.reset();
 });
 
@@ -4170,6 +4612,7 @@ document.getElementById('loadForm')?.addEventListener('submit', function(e) {
   saveData('load');
   updateLoadChart();
   alert('负荷数据已保存！');
+  refreshActivePageView();
   this.reset();
 });
 
@@ -4177,7 +4620,7 @@ document.getElementById('loadForm')?.addEventListener('submit', function(e) {
 function updateAnthroTable() {
   const tbody = document.getElementById('anthroTable');
   if (!tbody) return;
-  tbody.innerHTML = dataStore.anthropometric.slice().reverse().map(d => {
+  tbody.innerHTML = dataStore.anthropometric.map((d, index, arr) => {
     const bmi = d.weight && d.height ? (d.weight / ((d.height/100) ** 2)).toFixed(1) : '--';
     return `<tr>
       <td>${d.date}</td>
@@ -4186,16 +4629,16 @@ function updateAnthroTable() {
       <td>${bmi}</td>
       <td>${d.wingspan || '--'}</td>
       <td>${d.reachHeight || '--'}</td>
-      <td><button class="btn btn-sm btn-secondary">删除</button></td>
+      <td><button class="btn btn-sm btn-secondary" onclick="deleteDataEntry('anthropometric', ${arr.length - 1 - index})">删除</button></td>
     </tr>`;
-  }).join('');
+  }).reverse().join('');
 }
 
 function updateGrowthTable() {
   const tbody = document.getElementById('growthTable');
   if (!tbody) return;
   let prevHeight = null;
-  tbody.innerHTML = dataStore.growth.slice().reverse().map((d, i) => {
+  tbody.innerHTML = dataStore.growth.map((d, i, arr) => {
     const bmi = d.weight && d.height ? (d.weight / ((d.height/100) ** 2)).toFixed(1) : '--';
     let growth = '--';
     if (prevHeight && d.height) {
@@ -4211,14 +4654,15 @@ function updateGrowthTable() {
       <td>${growth}</td>
       <td><span class="badge badge-blue">${phvText}</span></td>
       <td>${d.predictedHeight || '--'}cm</td>
+      <td><button class="btn btn-sm btn-secondary" onclick="deleteDataEntry('growth', ${arr.length - 1 - i})">删除</button></td>
     </tr>`;
-  }).join('');
+  }).reverse().join('');
 }
 
 function updateFMSTable() {
   const tbody = document.getElementById('fmsTable');
   if (!tbody) return;
-  tbody.innerHTML = dataStore.fms.slice().reverse().map(d => {
+  tbody.innerHTML = dataStore.fms.map((d, index, arr) => {
     const risk = d.total < 14 ? '<span class="badge badge-red">高风险</span>' : '<span class="badge badge-green">正常</span>';
     return `<tr>
       <td>${d.date}</td>
@@ -4231,15 +4675,16 @@ function updateFMSTable() {
       <td>${d.fmsPushup}</td>
       <td>${d.fmsRotary}</td>
       <td>${risk}</td>
+      <td><button class="btn btn-sm btn-secondary" onclick="deleteDataEntry('fms', ${arr.length - 1 - index})">删除</button></td>
     </tr>`;
-  }).join('');
+  }).reverse().join('');
   applyTranslations(tbody);
 }
 
 function updateGameTable() {
   const tbody = document.getElementById('gameTable');
   if (!tbody) return;
-  tbody.innerHTML = dataStore.game.slice().reverse().map(d => `
+  tbody.innerHTML = dataStore.game.map((d, index, arr) => `
     <tr>
       <td>${d.date}</td>
       <td>${d.opponent}</td>
@@ -4250,8 +4695,9 @@ function updateGameTable() {
       <td>${d.rebounds}</td>
       <td>${d.assists}</td>
       <td>${d.efficiency || '--'}</td>
+      <td><button class="btn btn-sm btn-secondary" onclick="deleteDataEntry('game', ${arr.length - 1 - index})">删除</button></td>
     </tr>
-  `).join('');
+  `).reverse().join('');
 }
 
 function updateInjuryTable() {
@@ -4260,7 +4706,7 @@ function updateInjuryTable() {
   const typeMap = { sprain: '扭伤', strain: '拉伤', fracture: '骨折', contusion: '挫伤', tendonitis: '肌腱炎', overuse: '过度使用', other: '其他' };
   const causeMap = { acute: '急性', chronic: '慢性', overuse: '过度使用', contact: '接触', other: '其他' };
   const sevMap = { mild: '轻度', moderate: '中度', severe: '重度' };
-  tbody.innerHTML = dataStore.injury.slice().reverse().map(d => `
+  tbody.innerHTML = dataStore.injury.map((d, index, arr) => `
     <tr>
       <td>${d.date}</td>
       <td>${typeMap[d.type]}</td>
@@ -4269,8 +4715,9 @@ function updateInjuryTable() {
       <td>${sevMap[d.severity]}</td>
       <td>${d.daysOff}天</td>
       <td>${d.recurrence === 'yes' ? '是' : '否'}</td>
+      <td><button class="btn btn-sm btn-secondary" onclick="deleteDataEntry('injury', ${arr.length - 1 - index})">删除</button></td>
     </tr>
-  `).join('');
+  `).reverse().join('');
   applyTranslations(tbody);
 }
 
@@ -4308,15 +4755,16 @@ function updateVideoTable() {
     return;
   }
   
-  tbody.innerHTML = dataStore.videos.slice().reverse().map(v => `
+  tbody.innerHTML = dataStore.videos.map((v, index, arr) => `
     <tr>
       <td>${v.date}</td>
       <td>${v.typeName}</td>
       <td>${v.age}</td>
       <td>${v.link || '未记录'}</td>
       <td>${v.comment || '无'}</td>
+      <td><button class="btn btn-sm btn-secondary" onclick="deleteDataEntry('videos', ${arr.length - 1 - index})">删除</button></td>
     </tr>
-  `).join('');
+  `).reverse().join('');
   applyTranslations(tbody);
 }
 
@@ -4338,11 +4786,14 @@ function checkMilestone(id) {
       achieved: true
     });
     saveData('milestones');
+    updateMilestoneList();
+    refreshActivePageView();
   }
 }
 
 function addCustomMilestone() {
-  const name = document.getElementById('customMilestone')?.value;
+  const input = document.getElementById('customMilestone');
+  const name = input?.value;
   if (!name) return alert(t('请输入里程碑名称'));
   
   dataStore.milestones.push({
@@ -4353,26 +4804,79 @@ function addCustomMilestone() {
   });
   saveData('milestones');
   updateMilestoneList();
-  document.getElementById('customMilestone').value = '';
+  refreshActivePageView();
+  if (input) input.value = '';
   alert(t('自定义里程碑已添加！'));
 }
 
+function addMilestone() {
+  const date = document.getElementById('milestoneDate')?.value || new Date().toISOString().split('T')[0];
+  const type = document.getElementById('milestoneType')?.value || 'other';
+  const desc = (document.getElementById('milestoneDesc')?.value || '').trim();
+  if (!desc) return alert(t('请输入成就描述'));
+
+  const milestoneTypeLabels = {
+    dunk: t('首次扣篮'),
+    three: t('首次三分'),
+    team: t('入选球队'),
+    mvp: t('比赛MVP'),
+    champion: t('冠军'),
+    record: t('打破纪录'),
+    other: t('其他')
+  };
+
+  dataStore.milestones.push({
+    id: Date.now(),
+    type,
+    name: milestoneTypeLabels[type] || t('其他'),
+    description: desc,
+    date,
+    achieved: true
+  });
+
+  saveData('milestones');
+  updateMilestoneList();
+  refreshActivePageView();
+
+  const dateInput = document.getElementById('milestoneDate');
+  const typeInput = document.getElementById('milestoneType');
+  const descInput = document.getElementById('milestoneDesc');
+  if (dateInput) dateInput.value = '';
+  if (typeInput) typeInput.value = 'dunk';
+  if (descInput) descInput.value = '';
+
+  alert(t('成就已记录！'));
+}
+
 function updateMilestoneList() {
-  const container = document.getElementById('milestoneList');
+  const container = document.getElementById('milestoneList') || document.getElementById('milestoneTimeline');
   if (!container) return;
   
   if (dataStore.milestones.length === 0) {
-    container.innerHTML = '<p style="color:#999;text-align:center;">暂无已达成里程碑</p>';
+    container.innerHTML = `
+      <div class="suggestion-card">
+        <div class="suggestion-title">${t('暂无已达成里程碑')}</div>
+        <ul class="suggestion-list">
+          <li>${t('录入重要训练节点、比赛成就或成长突破后，会自动出现在这里。')}</li>
+        </ul>
+      </div>
+    `;
     applyTranslations(container);
     return;
   }
   
-  container.innerHTML = dataStore.milestones.slice().reverse().map(m => `
+  container.innerHTML = dataStore.milestones.map((m, index, arr) => `
     <div class="suggestion-card" style="border-left-color: var(--green);">
-      <div class="suggestion-title">✅ ${m.name}</div>
-      <div style="font-size: 12px; color: #666;">达成日期: ${m.date}</div>
+      <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start;">
+        <div>
+          <div class="suggestion-title">✅ ${m.name || t('里程碑')}</div>
+          <div style="font-size: 12px; color: #666; margin-top: 4px;">${t('达成日期')}: ${m.date || t('未记录')}</div>
+          <div style="font-size: 13px; color: #334155; margin-top: 8px;">${m.description || m.note || t('未填写描述')}</div>
+        </div>
+        <button class="btn btn-sm btn-secondary" onclick="deleteMilestone(${arr.length - 1 - index})">${t('删除')}</button>
+      </div>
     </div>
-  `).join('');
+  `).reverse().join('');
   applyTranslations(container);
 }
 
@@ -4401,7 +4905,7 @@ function updateGrowthChart() {
     data: {
       labels: data.map(d => d.date),
       datasets: [{
-        label: t('Murray身高'),
+        label: `${getPlayerName()}${t('身高')}`,
         data: data.map(d => d.height),
         borderColor: '#f97316',
         backgroundColor: 'rgba(249,115,22,0.1)',
@@ -4426,8 +4930,9 @@ function updateGrowthChart() {
 }
 
 function calculateAge(dateStr) {
-  const birth = new Date(MURRAY_BIRTH_DATE);
+  const birth = new Date(getPlayerBirthDate());
   const current = new Date(dateStr);
+  if (Number.isNaN(birth.getTime()) || Number.isNaN(current.getTime())) return 0;
   return (current - birth) / (365.25 * 24 * 60 * 60 * 1000);
 }
 
@@ -5156,27 +5661,165 @@ function exportAllData() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `Murray_Tang_篮球数据_${new Date().toISOString().split('T')[0]}.json`;
+  a.download = `${getPlayerName().replace(/\s+/g, '_')}_basketball_data_${new Date().toISOString().split('T')[0]}.json`;
   a.click();
+  URL.revokeObjectURL(url);
 }
 
 function exportCSV() {
-  alert('CSV导出功能开发中，请使用JSON导出');
+  const rows = [['module', 'date', 'field', 'value']];
+  Object.entries(dataStore).forEach(([module, records]) => {
+    if (!Array.isArray(records)) return;
+    records.forEach((record) => {
+      if (!record || typeof record !== 'object') return;
+      const recordDate = record.date || '';
+      Object.entries(record).forEach(([field, value]) => {
+        if (field === 'date') return;
+        rows.push([module, recordDate, field, value ?? '']);
+      });
+    });
+  });
+  const csv = rows.map((row) => row.map(escapeCsvValue).join(',')).join('\n');
+  downloadBlob(csv, `${getPlayerName().replace(/\s+/g, '_')}_data_${new Date().toISOString().split('T')[0]}.csv`, 'text/csv;charset=utf-8;');
+  alert('CSV导出成功！');
 }
 
 function generateReport() {
-  alert('综合报告功能开发中');
+  const report = buildComprehensiveReport();
+  downloadBlob(report, `${getPlayerName().replace(/\s+/g, '_')}_report_${new Date().toISOString().split('T')[0]}.txt`, 'text/plain;charset=utf-8;');
+  alert('综合报告已导出！');
+}
+
+function generateMonthlyReport() {
+  const today = new Date();
+  const month = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+  const report = [
+    `${month} ${t('月度训练报告')}`,
+    '================================',
+    '',
+    buildComprehensiveReport()
+  ].join('\n');
+  downloadBlob(report, `${getPlayerName().replace(/\s+/g, '_')}_monthly_report_${month}.txt`, 'text/plain;charset=utf-8;');
+  alert(t('月度报告已导出！'));
+}
+
+function escapeCsvValue(value) {
+  const stringValue = String(value ?? '');
+  return /[",\n]/.test(stringValue) ? `"${stringValue.replace(/"/g, '""')}"` : stringValue;
+}
+
+function downloadBlob(content, filename, mimeType) {
+  const blob = new Blob([content], { type: mimeType });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function buildComprehensiveReport() {
+  const today = new Date().toLocaleDateString('zh-CN');
+  const anthro = dataStore.anthropometric[dataStore.anthropometric.length - 1] || {};
+  const power = dataStore.power[dataStore.power.length - 1] || {};
+  const speed = dataStore.speed[dataStore.speed.length - 1] || {};
+  const endurance = dataStore.endurance[dataStore.endurance.length - 1] || {};
+  const shooting = dataStore.shooting[dataStore.shooting.length - 1] || {};
+  const dribbling = dataStore.dribbling[dataStore.dribbling.length - 1] || {};
+  const loadEntries = dataStore.load || [];
+  const weekAgo = new Date();
+  weekAgo.setDate(weekAgo.getDate() - 7);
+  const recentLoads = loadEntries.filter((entry) => entry.date && new Date(entry.date) >= weekAgo);
+  const weeklyLoad = recentLoads.reduce((sum, entry) => sum + ((entry.duration || 0) * (entry.rpe || 5)), 0);
+  const fmsTotal = calculateFMSTotal(dataStore.fms[dataStore.fms.length - 1] || {});
+
+  const lines = [
+    `${getPlayerName()} ${t('篮球综合报告')}`,
+    `生成日期: ${today}`,
+    '',
+    '一、基础资料',
+    `身高: ${anthro.height ?? '--'} cm`,
+    `体重: ${anthro.weight ?? '--'} kg`,
+    `臂展: ${anthro.wingspan ?? '--'} cm`,
+    '',
+    '二、体能表现',
+    `助跑纵跳: ${power.maxVert ?? '--'} cm`,
+    `原地纵跳: ${power.sj ?? '--'} cm`,
+    `20米冲刺: ${speed.sprint20m ?? '--'} 秒`,
+    `耐力测试: ${endurance.yoyoLevel ?? endurance.shuttleRuns ?? '--'}`,
+    `FMS总分: ${fmsTotal ?? '--'}`,
+    '',
+    '三、技术表现',
+    `罚球: ${shooting.freeThrow ?? '--'}/10`,
+    `运球后投篮: ${shooting.dribbleShoot ?? '--'}/10`,
+    `接球投篮: ${shooting.catchShoot ?? '--'}/10`,
+    `右手直线运球: ${dribbling.dribbleRight ?? '--'}`,
+    `左手直线运球: ${dribbling.dribbleLeft ?? '--'}`,
+    `变向运球: ${dribbling.dribbleCross ?? '--'}`,
+    '',
+    '四、训练负荷',
+    `近7天训练次数: ${recentLoads.length}`,
+    `近7天总负荷: ${weeklyLoad}`,
+    '',
+    '五、系统建议',
+    generateTrainingFocusSummary(),
+    '',
+    '六、数据完整性',
+    `身体测量记录: ${dataStore.anthropometric.length} 条`,
+    `爆发力记录: ${dataStore.power.length} 条`,
+    `速度记录: ${dataStore.speed.length} 条`,
+    `投篮记录: ${dataStore.shooting.length} 条`,
+    `运球记录: ${dataStore.dribbling.length} 条`,
+    `训练负荷记录: ${dataStore.load.length} 条`
+  ];
+
+  return lines.join('\n');
+}
+
+function generateTrainingFocusSummary() {
+  const latestShooting = dataStore.shooting[dataStore.shooting.length - 1] || {};
+  const latestDribbling = dataStore.dribbling[dataStore.dribbling.length - 1] || {};
+  const latestNutrition = dataStore.nutrition[dataStore.nutrition.length - 1] || {};
+  const latestPower = dataStore.power[dataStore.power.length - 1] || {};
+  const latestSpeed = dataStore.speed[dataStore.speed.length - 1] || {};
+  const latestStrength = dataStore.strength[dataStore.strength.length - 1] || {};
+  const weeklyLoad = (dataStore.load || [])
+    .filter((entry) => entry.date && new Date(entry.date) >= new Date(Date.now() - 7 * 24 * 60 * 60 * 1000))
+    .reduce((sum, entry) => sum + ((entry.duration || 0) * (entry.rpe || 5)), 0);
+
+  const shootingScores = [latestShooting.freeThrow, latestShooting.dribbleShoot, latestShooting.catchShoot].filter(Number.isFinite);
+  const shootingAverage = shootingScores.length ? shootingScores.reduce((a, b) => a + b, 0) / shootingScores.length : null;
+  if ((Number.isFinite(latestNutrition.fatigue) && latestNutrition.fatigue >= 7) || (Number.isFinite(latestNutrition.sleepQuality) && latestNutrition.sleepQuality <= 5) || weeklyLoad >= 2200) {
+    return '本周建议优先恢复，降低强度并提高睡眠和拉伸质量。';
+  }
+  if (shootingAverage !== null && shootingAverage < 6) {
+    return '本周建议优先强化投篮手型与接球投篮稳定性。';
+  }
+  if ((Number.isFinite(latestDribbling.dribbleCross) && latestDribbling.dribbleCross >= 8.8) || (Number.isFinite(latestDribbling.turnovers) && latestDribbling.turnovers >= 4)) {
+    return '本周建议优先强化控球稳定性与变向控制。';
+  }
+  if ((Number.isFinite(latestSpeed.sprint20m) && latestSpeed.sprint20m >= 3.6) || (Number.isFinite(latestPower.maxVert) && latestPower.maxVert < 52) || (Number.isFinite(latestStrength.pushup) && latestStrength.pushup < 18)) {
+    return '本周建议优先强化速度、爆发力和核心力量。';
+  }
+  return '当前数据较均衡，建议继续按综合提升计划推进。';
 }
 
 function clearAllData() {
-  if (confirm(t('确定要清空所有数据吗？此操作不可恢复！'))) {
+  showModal({
+    title: t('清空所有数据'),
+    message: t('确定要清空所有数据吗？此操作不可恢复！'),
+    confirmText: t('确认清空'),
+    cancelText: t('取消')
+  }).then((confirmed) => {
+    if (!confirmed) return;
     Object.keys(dataStore).forEach(key => {
       dataStore[key] = [];
+      localStorage.removeItem(STORAGE_KEY_MAP[key] || ('murray_' + key));
       localStorage.removeItem('murray_' + key);
     });
     alert(t('所有数据已清空'));
     location.reload();
-  }
+  });
 }
 
 function importData() {
@@ -5184,9 +5827,17 @@ function importData() {
   if (!data) return alert(t('请输入数据'));
   try {
     const parsed = JSON.parse(data);
+    if (parsed.profile) {
+      playerProfile = { ...playerProfile, ...parsed.profile };
+      savePlayerProfileStorage();
+    }
+    if (parsed.ageGroup) {
+      currentAgeGroup = parsed.ageGroup;
+      localStorage.setItem('murray_ageGroup', currentAgeGroup);
+    }
     Object.keys(parsed).forEach(key => {
       if (dataStore[key] !== undefined) {
-        dataStore[key] = parsed[key];
+        dataStore[key] = Array.isArray(parsed[key]) ? parsed[key].map(normalizeRecord) : parsed[key];
         saveData(key);
       }
     });
@@ -5197,24 +5848,19 @@ function importData() {
   }
 }
 
-// 多设备同步功能
+// 跨设备迁移功能
 function generateSyncCode() {
-  const code = Math.random().toString(36).substring(2, 6).toUpperCase();
-  document.getElementById('syncCodeValue').textContent = code;
+  const payload = {
+    exportedAt: new Date().toISOString(),
+    profile: playerProfile,
+    ageGroup: currentAgeGroup,
+    data: dataStore
+  };
+  const packageText = btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
+  document.getElementById('syncCodeValue').value = packageText;
   document.getElementById('syncCodeDisplay').style.display = 'block';
   document.getElementById('syncInputArea').style.display = 'none';
-  
-  // 存储同步数据（24小时有效）
-  const syncData = {
-    code: code,
-    data: dataStore,
-    timestamp: Date.now(),
-    expires: Date.now() + 24 * 60 * 60 * 1000
-  };
-  localStorage.setItem('murray_sync_' + code, JSON.stringify(syncData));
-  
-  // 显示提示
-  alert(t('同步码已生成：') + code + '\n' + t('请在其他设备上输入此代码进行同步（24小时内有效）'));
+  alert(t('迁移文本已生成，可复制到另一台设备导入。'));
 }
 
 function showSyncInput() {
@@ -5223,49 +5869,78 @@ function showSyncInput() {
 }
 
 function syncWithCode() {
-  const code = document.getElementById('inputSyncCode').value.toUpperCase();
-  if (code.length !== 4) {
-    alert(t('请输入4位同步码'));
+  const packageText = document.getElementById('inputSyncCode').value.trim();
+  if (!packageText) {
+    alert(t('请输入迁移文本'));
     return;
   }
-  
-  const syncItem = localStorage.getItem('murray_sync_' + code);
-  if (!syncItem) {
-    alert(t('同步码无效或已过期，请重新生成'));
+
+  let syncData;
+  try {
+    syncData = JSON.parse(decodeURIComponent(escape(atob(packageText))));
+  } catch (e) {
+    alert(t('迁移文本格式错误，请重新复制。'));
     return;
   }
-  
-  const syncData = JSON.parse(syncItem);
-  if (Date.now() > syncData.expires) {
-    alert(t('同步码已过期，请重新生成'));
-    localStorage.removeItem('murray_sync_' + code);
-    return;
-  }
-  
-  if (confirm(t('确定要同步数据吗？这将合并当前设备的数据。'))) {
-    // 合并数据
-    mergeData(syncData.data);
-    alert(t('同步成功！数据已更新'));
+
+  showModal({
+    title: t('导入迁移文本'),
+    message: t('确定要导入这份迁移文本吗？系统会合并当前设备的数据。'),
+    confirmText: t('开始导入'),
+    cancelText: t('取消')
+  }).then((confirmed) => {
+    if (!confirmed) return;
+    if (syncData.profile) {
+      playerProfile = { ...playerProfile, ...syncData.profile };
+      savePlayerProfileStorage();
+      renderProfileForm();
+    }
+    if (syncData.ageGroup) {
+      currentAgeGroup = syncData.ageGroup;
+      localStorage.setItem('murray_ageGroup', currentAgeGroup);
+    }
+    mergeData(syncData.data || {});
+    alert(t('迁移导入成功！数据已更新'));
     location.reload();
-  }
+  });
+}
+
+function copyTransferPackage() {
+  const text = document.getElementById('syncCodeValue')?.value;
+  if (!text) return alert(t('请先生成迁移文本'));
+  navigator.clipboard.writeText(text).then(() => {
+    showToast(t('迁移文本已复制到剪贴板'), 'success');
+  }).catch(() => {
+    showModal({
+      title: t('复制迁移文本'),
+      message: t('如果自动复制失败，请手动复制下面的内容。'),
+      textValue: text,
+      showTextarea: true,
+      confirmText: t('完成'),
+      singleButton: true
+    });
+  });
 }
 
 function mergeData(remoteData) {
-  // 合并策略：保留所有记录，去重
+  const buildRecordFingerprint = (record) => {
+    const ordered = Object.keys(record || {}).sort().reduce((acc, key) => {
+      acc[key] = record[key];
+      return acc;
+    }, {});
+    return JSON.stringify(ordered);
+  };
+
   Object.keys(remoteData).forEach(key => {
     if (Array.isArray(dataStore[key]) && Array.isArray(remoteData[key])) {
       const combined = [...dataStore[key]];
       remoteData[key].forEach(remoteItem => {
-        // 简单的去重：检查是否已存在相同日期的记录
-        const exists = combined.some(localItem => 
-          localItem.date === remoteItem.date && 
-          JSON.stringify(localItem) === JSON.stringify(remoteItem)
-        );
+        const normalizedRemote = normalizeRecord(remoteItem);
+        const exists = combined.some(localItem => buildRecordFingerprint(normalizeRecord(localItem)) === buildRecordFingerprint(normalizedRemote));
         if (!exists) {
-          combined.push(remoteItem);
+          combined.push(normalizedRemote);
         }
       });
-      // 按日期排序
       combined.sort((a, b) => new Date(a.date) - new Date(b.date));
       dataStore[key] = combined;
       saveData(key);
@@ -5278,7 +5953,14 @@ function shareToWeChat() {
   navigator.clipboard.writeText(summary).then(() => {
     alert(t('周报已复制到剪贴板，请粘贴到微信发送！') + '\n\n' + summary.substring(0, 100) + '...');
   }).catch(() => {
-    prompt(t('请复制以下内容分享：'), summary);
+    showModal({
+      title: t('分享周报'),
+      message: t('如果自动复制失败，请手动复制下面的内容。'),
+      textValue: summary,
+      showTextarea: true,
+      confirmText: t('完成'),
+      singleButton: true
+    });
   });
 }
 
@@ -5291,7 +5973,7 @@ function generateWeeklySummary() {
   const latestPower = power.length > 0 ? power[power.length - 1] : null;
   const latestSpeed = speed.length > 0 ? speed[speed.length - 1] : null;
   
-  let summary = `🏀 Murray Tang 训练周报\n📅 ${today}\n\n`;
+  let summary = `🏀 ${getPlayerName()} ${t('训练周报')}\n📅 ${today}\n\n`;
   
   if (latestAnthro || latestPower || latestSpeed) {
     summary += `📏 身高: ${latestAnthro?.height || '--'}cm\n`;
@@ -5310,13 +5992,20 @@ function generateWeeklySummary() {
   const achieved = milestones.filter(m => m.achieved).length;
   summary += `🏆 里程碑: ${achieved}/${milestones.length}\n\n`;
   
-  summary += `—— 来自Murray专业篮球训练系统`;
+  summary += `—— ${getSystemTitle()}`;
   return summary;
 }
 
 function generateShareLink() {
   const summary = generateWeeklySummary();
-  prompt('请复制以下内容分享：', summary);
+  showModal({
+    title: t('分享文本'),
+    message: t('请复制以下内容分享：'),
+    textValue: summary,
+    showTextarea: true,
+    confirmText: t('完成'),
+    singleButton: true
+  });
 }
 
 // 年龄段配置
@@ -5349,15 +6038,14 @@ const ageGroupConfig = {
   }
 };
 
-const MURRAY_BIRTH_DATE = '2016-01-08';
-
-let currentAgeGroup = localStorage.getItem('murray_ageGroup') || '10-11';
+let currentAgeGroup = localStorage.getItem('murray_ageGroup') || determineAgeGroup(getPlayerAgeYears());
 
 function changeAgeGroup() {
   currentAgeGroup = document.getElementById('ageGroupSelector').value;
   localStorage.setItem('murray_ageGroup', currentAgeGroup);
   updateSchedulePage();
-  alert(`已切换到：${ageGroupConfig[currentAgeGroup].name}`);
+  updateGoalsTable();
+  showToast(`${t('已切换到：')}${ageGroupConfig[currentAgeGroup].name}`, 'success');
 }
 
 function updateSchedulePage() {
@@ -5398,7 +6086,62 @@ function updateSchedulePage() {
         </ul>
       </div>
     `;
+    applyTranslations(scheduleDiv);
   }
+}
+
+function updateGoalsTable() {
+  const tbody = document.getElementById('goalsTable');
+  if (!tbody) return;
+
+  const config = ageGroupConfig[currentAgeGroup] || ageGroupConfig['10-11'];
+  const shooting = dataStore.shooting[dataStore.shooting.length - 1] || {};
+  const power = dataStore.power[dataStore.power.length - 1] || {};
+  const speed = dataStore.speed[dataStore.speed.length - 1] || {};
+  const fms = dataStore.fms[dataStore.fms.length - 1] || {};
+  const fmsTotal = calculateFMSTotal(fms);
+
+  const rows = [
+    {
+      label: t('罚球命中率'),
+      current: Number.isFinite(shooting.freeThrow) ? `${shooting.freeThrow}/10` : `<span class="badge badge-gray">${t('待测试')}</span>`,
+      targets: ['55%', '60%', config.targets.ft]
+    },
+    {
+      label: t('助跑纵跳'),
+      current: Number.isFinite(power.maxVert) ? `${power.maxVert}cm` : `<span class="badge badge-gray">${t('待测试')}</span>`,
+      targets: [
+        Number.isFinite(power.maxVert) ? `${Math.round(power.maxVert + 1)}cm` : '55cm',
+        Number.isFinite(power.maxVert) ? `${Math.round(power.maxVert + 2)}cm` : '57cm',
+        config.targets.jump
+      ]
+    },
+    {
+      label: t('20米冲刺'),
+      current: Number.isFinite(speed.sprint20m) ? `${speed.sprint20m}秒` : `<span class="badge badge-gray">${t('待测试')}</span>`,
+      targets: [
+        Number.isFinite(speed.sprint20m) ? `${Math.max(2.8, speed.sprint20m - 0.03).toFixed(2)}秒` : '3.50秒',
+        Number.isFinite(speed.sprint20m) ? `${Math.max(2.8, speed.sprint20m - 0.06).toFixed(2)}秒` : '3.45秒',
+        config.targets.sprint
+      ]
+    },
+    {
+      label: 'FMS总分',
+      current: Number.isFinite(fmsTotal) ? `${fmsTotal}分` : `<span class="badge badge-gray">${t('待测试')}</span>`,
+      targets: [currentAgeGroup === '10-11' ? '15分' : '16分', currentAgeGroup === '16' ? '18分' : '17分', currentAgeGroup === '16' ? '19分' : '18分']
+    }
+  ];
+
+  tbody.innerHTML = rows.map((row) => `
+    <tr>
+      <td>${row.label}</td>
+      <td>${row.current}</td>
+      <td>${row.targets[0]}</td>
+      <td>${row.targets[1]}</td>
+      <td>${row.targets[2]}</td>
+    </tr>
+  `).join('');
+  applyTranslations(tbody);
 }
 
 // 预警检测功能
@@ -5503,19 +6246,24 @@ function clearAlerts() {
 // 初始化
 window.onload = function() {
   const today = new Date().toISOString().split('T')[0];
+  ensureUiShell();
+  currentAgeGroup = localStorage.getItem('murray_ageGroup') || determineAgeGroup(getPlayerAgeYears());
   document.querySelectorAll('input[type="date"]').forEach(input => {
     if (!input.value) input.value = today;
   });
   
   // 设置年龄段选择器
   document.getElementById('ageGroupSelector').value = currentAgeGroup;
+  renderProfileForm();
   const urlLang = new URL(window.location.href).searchParams.get('lang');
   currentLang = ['zh', 'en', 'pt'].includes(urlLang) ? urlLang : 'zh';
   const initialPageId = window.location.hash ? window.location.hash.replace('#', '') : 'dashboard';
   syncPageSelectors(initialPageId);
   
+  updatePlayerProfileUI();
   updateDashboard();
   updateSchedulePage();
+  updateGoalsTable();
   updateVideoTable();
   updateMilestoneList();
   applyTranslations(document.body);
