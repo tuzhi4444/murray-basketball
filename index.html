@@ -3,14 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Murray Tang 专业篮球训练管理系统 v2.0</title>
+<title>murray basketball</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="./translations.generated.js"></script>
 <style>
 :root {
-  --primary: #f97316;
-  --primary-dark: #ea580c;
+  --primary: #0f766e;
+  --primary-dark: #115e59;
   --secondary: #1e293b;
   --bg: #f1f5f9;
   --surface: #ffffff;
@@ -110,7 +110,7 @@ tr:hover td { background: var(--surface2); }
 .tab:hover { color: var(--text); }
 .tab.active { color: var(--primary); border-bottom-color: var(--primary); }
 
-.suggestion-card { background: linear-gradient(135deg, rgba(249,115,22,.06) 0%, rgba(249,115,22,.02) 100%); border: 1px solid rgba(249,115,22,.15); border-radius: 12px; padding: 16px; margin-bottom: 12px; }
+.suggestion-card { background: linear-gradient(135deg, rgba(15,118,110,.08) 0%, rgba(15,118,110,.03) 100%); border: 1px solid rgba(15,118,110,.18); border-radius: 12px; padding: 16px; margin-bottom: 12px; }
 .suggestion-title { font-size: 14px; font-weight: 600; color: var(--primary); margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
 .suggestion-list { list-style: none; }
 .suggestion-list li { padding: 6px 0; padding-left: 20px; position: relative; font-size: 13px; color: var(--text); }
@@ -164,7 +164,7 @@ tr:hover td { background: var(--surface2); }
 .intensity-low { background: var(--green); }
 .intensity-med { background: var(--yellow); }
 .intensity-high { background: var(--primary); }
-.tip-box { background: rgba(249,115,22,.06); border: 1px solid rgba(249,115,22,.18); border-radius: 10px; padding: 13px 16px; font-size: 13px; line-height: 1.6; color: var(--text); margin-top: 16px; }
+.tip-box { background: rgba(15,118,110,.06); border: 1px solid rgba(15,118,110,.18); border-radius: 10px; padding: 13px 16px; font-size: 13px; line-height: 1.6; color: var(--text); margin-top: 16px; }
 .rest-day-box { text-align: center; padding: 44px 20px; background: var(--surface2); border-radius: 12px; border: 1px solid var(--border); }
 .rest-day-box .big-icon { font-size: 52px; margin-bottom: 12px; }
 .rest-day-box h3 { font-size: 20px; font-weight: 800; margin-bottom: 8px; }
@@ -239,7 +239,7 @@ tr:hover td { background: var(--surface2); }
   <header class="header">
     <div class="header-logo">
       <span class="ball">🏀</span>
-      <span id="appTitle">青少年篮球训练系统 Pro</span>
+      <span id="appTitle">murray basketball</span>
     </div>
     <div class="header-actions">
       <div id="languageSwitcher" class="language-switcher">
@@ -4027,7 +4027,7 @@ const replacementCache = { en: new Map(), pt: new Map() };
 const replacementKeys = { en: null, pt: null };
 const PLAYER_PROFILE_STORAGE_KEY = 'murray_player_profile';
 const DEFAULT_PLAYER_PROFILE = {
-  systemName: '青少年篮球训练系统 Pro',
+  systemName: 'murray basketball',
   name: '',
   birthDate: '',
   team: '',
@@ -6076,8 +6076,8 @@ function updateGrowthChart() {
       datasets: [{
         label: `${getPlayerName()}${t('身高')}`,
         data: data.map(d => d.height),
-        borderColor: '#f97316',
-        backgroundColor: 'rgba(249,115,22,0.1)',
+        borderColor: '#0f766e',
+        backgroundColor: 'rgba(15,118,110,0.12)',
         fill: true,
         tension: 0.4
       }, {
@@ -6143,7 +6143,7 @@ function updatePowerChart() {
           dataStore.power[dataStore.power.length-1]?.maxVert || 0,
           dataStore.power[dataStore.power.length-1]?.broadJump || 0
         ],
-        backgroundColor: '#f97316'
+        backgroundColor: '#0f766e'
       }, {
         label: '同龄基准',
         data: [35, 45, 160],
@@ -6241,7 +6241,7 @@ function updateShootingChart() {
       datasets: [{
         label: '罚球%',
         data: dataStore.shooting.map(d => d.ft),
-        borderColor: '#f97316'
+        borderColor: '#0f766e'
       }, {
         label: '三分%',
         data: dataStore.shooting.map(d => d.threePt),
@@ -6337,7 +6337,7 @@ function updateGameChart() {
       datasets: [{
         label: '得分',
         data: dataStore.game.map(d => d.points).slice(-5),
-        backgroundColor: '#f97316'
+        backgroundColor: '#0f766e'
       }, {
         label: '篮板',
         data: dataStore.game.map(d => d.rebounds).slice(-5),
@@ -6433,9 +6433,9 @@ function updateLoadChart() {
       datasets: [{
         label: t('训练负荷'),
         data: dataStore.load.map(d => d.duration * (d.rpe || 5)).slice(-14),
-        borderColor: '#f97316',
+        borderColor: '#0f766e',
         fill: true,
-        backgroundColor: 'rgba(249,115,22,0.1)'
+        backgroundColor: 'rgba(15,118,110,0.12)'
       }]
     }
   });
@@ -6882,7 +6882,7 @@ function renderTrainingDay() {
   const day = currentTrainingPlan.weeklyPlan[currentTrainingDay];
   if (!day) return;
   const themeColorMap = {
-    '控球基础': { bg: 'rgba(249,115,22,.12)', color: 'var(--primary)' },
+    '控球基础': { bg: 'rgba(15,118,110,.12)', color: 'var(--primary)' },
     '脚步与平衡': { bg: 'rgba(37,99,235,.12)', color: 'var(--blue)' },
     '出手手型': { bg: 'rgba(147,51,234,.12)', color: 'var(--purple)' },
     '轻松恢复': { bg: 'rgba(34,197,94,.12)', color: 'var(--green)' },
@@ -6890,7 +6890,7 @@ function renderTrainingDay() {
     '强化挑战': { bg: 'rgba(220,38,38,.10)', color: 'var(--red)' },
     '完全休息': { bg: 'rgba(37,99,235,.10)', color: 'var(--blue)' }
   };
-  const color = themeColorMap[day.theme] || { bg: 'rgba(249,115,22,.12)', color: 'var(--primary)' };
+  const color = themeColorMap[day.theme] || { bg: 'rgba(15,118,110,.12)', color: 'var(--primary)' };
 
   if (day.rest) {
     detail.innerHTML = `
