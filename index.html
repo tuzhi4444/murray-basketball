@@ -1957,38 +1957,28 @@ tr:hover td { background: var(--surface2); }
           <div class="suggestion-card priority-high">
             <div class="suggestion-title">⚡ 体能优势分析</div>
             <ul class="suggestion-list" id="strengthAnalysis">
-              <li>爆发力突出：助跑纵跳54.7cm，比同龄基准高69%</li>
-              <li>速度优秀：20米冲刺3.53秒，快于基准10%</li>
-              <li>耐力出色：折返跑80次，是基准的1.7倍</li>
+              <li>等待最新数据分析...</li>
             </ul>
           </div>
           
           <div class="suggestion-card priority-medium">
             <div class="suggestion-title">📊 需要关注的方面</div>
             <ul class="suggestion-list" id="concernAnalysis">
-              <li>身高监测：目前138cm，比同龄基准低5.5cm，建议每月监测</li>
-              <li>FMS筛查：尚未完成，建议尽快进行以评估受伤风险</li>
-              <li>投篮数据：需要补充投篮热图数据</li>
-              <li>恢复监测：建议建立每日睡眠和疲劳记录</li>
+              <li>等待最新数据分析...</li>
             </ul>
           </div>
           
           <div class="suggestion-card priority-low">
             <div class="suggestion-title">🎯 位置建议</div>
             <ul class="suggestion-list" id="positionAnalysis">
-              <li>基于目前的爆发力和速度优势，建议发展<strong>控球后卫</strong>技术</li>
-              <li>重点培养：控球能力、外线投篮、快攻组织</li>
-              <li>持续监测身高增长，如后期身高突增可考虑调整位置</li>
+              <li>等待最新数据分析...</li>
             </ul>
           </div>
           
           <div class="suggestion-card">
             <div class="suggestion-title">📈 个性化训练建议</div>
             <ul class="suggestion-list" id="trainingAnalysis">
-              <li>利用爆发力优势：发展内线进攻和篮板能力</li>
-              <li>发挥速度优势：培养快攻意识和防守压迫性</li>
-              <li>保持耐力优势：确保全场高强度比赛能力</li>
-              <li>针对身高偏矮：重点培养后卫技术和投篮能力</li>
+              <li>等待最新数据分析...</li>
             </ul>
           </div>
         </div>
@@ -2005,19 +1995,19 @@ tr:hover td { background: var(--surface2); }
             <div class="card-title"><span class="icon">🏆</span>综合能力评分</div>
             <div class="stats-grid" style="margin-top: 20px;">
               <div class="stat-card">
-                <div class="stat-value" style="color: var(--green);">85</div>
+                <div class="stat-value" id="analysisScorePower" style="color: var(--green);">--</div>
                 <div class="stat-label">爆发力</div>
               </div>
               <div class="stat-card">
-                <div class="stat-value" style="color: var(--green);">82</div>
+                <div class="stat-value" id="analysisScoreSpeed" style="color: var(--green);">--</div>
                 <div class="stat-label">速度</div>
               </div>
               <div class="stat-card">
-                <div class="stat-value" style="color: var(--green);">90</div>
+                <div class="stat-value" id="analysisScoreEndurance" style="color: var(--green);">--</div>
                 <div class="stat-label">耐力</div>
               </div>
               <div class="stat-card">
-                <div class="stat-value" style="color: var(--yellow);">65</div>
+                <div class="stat-value" id="analysisScoreDevelopment" style="color: var(--yellow);">--</div>
                 <div class="stat-label">身体发育</div>
               </div>
             </div>
@@ -6450,28 +6440,184 @@ function updateLoadChart() {
 
 // 分析更新
 function updateAnalysis() {
-  // 更新分析内容
+  const ageBenchmarks = {
+    '10-11': { jump: 26, maxVert: 40, sprint20m: 4.1, agility: 12.5, endurance: 6, height: 142 },
+    '12-13': { jump: 32, maxVert: 48, sprint20m: 3.7, agility: 11.6, endurance: 8, height: 154 },
+    '14-15': { jump: 38, maxVert: 55, sprint20m: 3.35, agility: 10.9, endurance: 10, height: 167 },
+    '16': { jump: 42, maxVert: 60, sprint20m: 3.15, agility: 10.5, endurance: 12, height: 175 }
+  };
+  const benchmark = ageBenchmarks[currentAgeGroup] || ageBenchmarks['12-13'];
+  const latestAnthro = dataStore.anthropometric[dataStore.anthropometric.length - 1] || {};
+  const latestPower = dataStore.power[dataStore.power.length - 1] || {};
+  const latestSpeed = dataStore.speed[dataStore.speed.length - 1] || {};
+  const latestAgility = dataStore.agility[dataStore.agility.length - 1] || {};
+  const latestEndurance = dataStore.endurance[dataStore.endurance.length - 1] || {};
+  const latestStrength = dataStore.strength[dataStore.strength.length - 1] || {};
+  const latestFms = dataStore.fms[dataStore.fms.length - 1] || {};
+  const latestShooting = dataStore.shooting[dataStore.shooting.length - 1] || {};
+  const latestDribbling = dataStore.dribbling[dataStore.dribbling.length - 1] || {};
+  const latestPassing = dataStore.passing[dataStore.passing.length - 1] || {};
+  const latestNutrition = dataStore.nutrition[dataStore.nutrition.length - 1] || {};
+  const playerName = getPlayerDisplayName();
+  const fmsTotal = calculateFMSTotal(latestFms);
+
+  const strengthItems = [];
+  const concernItems = [];
+  const positionItems = [];
+  const trainingItems = [];
+
+  if (Number.isFinite(latestPower.maxVert)) {
+    const jumpDelta = latestPower.maxVert - benchmark.maxVert;
+    strengthItems.push(`助跑纵跳 ${latestPower.maxVert} cm，${jumpDelta >= 0 ? '高于' : '低于'}同龄基准 ${Math.abs(jumpDelta).toFixed(1)} cm。`);
+  }
+  if (Number.isFinite(latestSpeed.sprint20m)) {
+    const sprintDelta = benchmark.sprint20m - latestSpeed.sprint20m;
+    strengthItems.push(`20米冲刺 ${latestSpeed.sprint20m} 秒，${sprintDelta >= 0 ? '快于' : '慢于'}同龄基准 ${Math.abs(sprintDelta).toFixed(2)} 秒。`);
+  }
+  if (Number.isFinite(latestEndurance.yoyoLevel)) {
+    const yoyoDelta = latestEndurance.yoyoLevel - benchmark.endurance;
+    strengthItems.push(`Yo-Yo 等级 ${latestEndurance.yoyoLevel}，${yoyoDelta >= 0 ? '达到或超过' : '低于'}同龄参考。`);
+  } else if (Number.isFinite(latestEndurance.shuttleRuns)) {
+    strengthItems.push(`折返跑完成 ${latestEndurance.shuttleRuns} 次，耐力基础已有可追踪数据。`);
+  }
+  if (!strengthItems.length) {
+    strengthItems.push('当前有效体能数据还不够，先补齐爆发力、速度和耐力测试，分析会更准确。');
+  }
+
+  if (Number.isFinite(latestAnthro.height)) {
+    const heightDelta = latestAnthro.height - benchmark.height;
+    concernItems.push(`当前身高 ${latestAnthro.height} cm，${heightDelta >= 0 ? '接近或高于' : '低于'}同龄参考 ${Math.abs(heightDelta).toFixed(1)} cm，建议持续月度跟踪。`);
+  }
+  if (!Number.isFinite(fmsTotal)) {
+    concernItems.push('FMS 还没有完整记录，系统暂时无法判断动作风险。');
+  } else if (fmsTotal < 14) {
+    concernItems.push(`FMS 总分 ${fmsTotal} 分，先把深蹲、跨栏步和旋转稳定性补起来。`);
+  }
+  if (!dataStore.shooting.length) {
+    concernItems.push('投篮数据还不完整，建议至少录入罚球、接球投篮和运球后投篮。');
+  }
+  if (!dataStore.nutrition.length) {
+    concernItems.push('恢复监测还没建立，建议开始记录睡眠、疲劳和酸痛。');
+  } else if (Number.isFinite(latestNutrition.sleepQuality) && latestNutrition.sleepQuality <= 5) {
+    concernItems.push(`最近睡眠质量 ${latestNutrition.sleepQuality}/10，恢复优先级需要提高。`);
+  }
+  if (!concernItems.length) {
+    concernItems.push('目前主要模块都有更新，接下来重点看连续趋势，而不是单次成绩。');
+  }
+
+  const guardSignals = (
+    (Number.isFinite(latestSpeed.sprint20m) && latestSpeed.sprint20m <= benchmark.sprint20m) ? 1 : 0
+  ) + (
+    (Number.isFinite(latestDribbling.cross) && latestDribbling.cross <= 8.5) ? 1 : 0
+  ) + (
+    (Number.isFinite(latestPassing.passDecision) && latestPassing.passDecision <= 1.6) ? 1 : 0
+  ) + (
+    (Number.isFinite(latestShooting.freeThrow) && latestShooting.freeThrow >= 65) ? 1 : 0
+  );
+  const wingSignals = (
+    (Number.isFinite(latestAnthro.height) && latestAnthro.height >= benchmark.height) ? 1 : 0
+  ) + (
+    (Number.isFinite(latestPower.maxVert) && latestPower.maxVert >= benchmark.maxVert) ? 1 : 0
+  ) + (
+    (Number.isFinite(latestShooting.catchShoot) && latestShooting.catchShoot >= 60) ? 1 : 0
+  );
+  const suggestedRole = guardSignals >= wingSignals ? '控球后卫 / 双能卫' : '锋卫摇摆人';
+  positionItems.push(`基于当前最新数据，${playerName} 现阶段更适合朝 ${suggestedRole} 方向发展。`);
+  if (guardSignals >= wingSignals) {
+    positionItems.push('优先放大持球推进、节奏变化、外线投篮和传球决策。');
+  } else {
+    positionItems.push('优先放大无球跑位、接球终结、侧翼防守和转换进攻。');
+  }
+  positionItems.push('如果未来 6-12 个月身高和摸高继续明显提升，再重新评估位置会更稳。');
+
+  if (Number.isFinite(latestSpeed.sprint20m) && latestSpeed.sprint20m > benchmark.sprint20m) {
+    trainingItems.push('速度还是短板，每周加 2 次起跑加速和减速控制训练。');
+  }
+  if (Number.isFinite(latestPower.maxVert) && latestPower.maxVert < benchmark.maxVert) {
+    trainingItems.push('爆发力还没到同龄优势区间，重点补下肢力量、跳跃落地和踝髋弹性。');
+  }
+  if (!Number.isFinite(latestShooting.freeThrow) || latestShooting.freeThrow < 65) {
+    trainingItems.push('投篮稳定性需要提高，固定增加近距手型、罚球和接球投篮重复。');
+  }
+  if (Number.isFinite(latestNutrition.sleepQuality) && latestNutrition.sleepQuality <= 5) {
+    trainingItems.push('先把恢复做稳：固定睡眠时间，训练后 30 分钟内补水和进食。');
+  }
+  if (Number.isFinite(fmsTotal) && fmsTotal < 14) {
+    trainingItems.push('先补动作质量，再追强度，避免在补偿动作上堆训练量。');
+  }
+  if (!trainingItems.length) {
+    trainingItems.push('最新数据整体比较平稳，本阶段更适合持续推进技术稳定性和专项细节。');
+  }
+
+  const powerScore = Number.isFinite(latestPower.maxVert)
+    ? Math.max(40, Math.min(99, Math.round((latestPower.maxVert / benchmark.maxVert) * 80)))
+    : null;
+  const speedScore = Number.isFinite(latestSpeed.sprint20m)
+    ? Math.max(40, Math.min(99, Math.round((benchmark.sprint20m / latestSpeed.sprint20m) * 80)))
+    : null;
+  const enduranceSource = Number.isFinite(latestEndurance.yoyoLevel)
+    ? (latestEndurance.yoyoLevel / benchmark.endurance) * 80
+    : Number.isFinite(latestEndurance.shuttleRuns)
+      ? (latestEndurance.shuttleRuns / 80) * 80
+      : null;
+  const enduranceScore = Number.isFinite(enduranceSource)
+    ? Math.max(40, Math.min(99, Math.round(enduranceSource)))
+    : null;
+  const developmentBase = Number.isFinite(latestAnthro.height)
+    ? ((latestAnthro.height / benchmark.height) * 45)
+    : 35;
+  const developmentScore = Math.max(40, Math.min(99, Math.round(developmentBase + (Number.isFinite(fmsTotal) ? fmsTotal * 2 : 0))));
+
+  const fillList = (id, items) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.innerHTML = items.map(item => `<li>${item}</li>`).join('');
+  };
+  const setScore = (id, value) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.textContent = Number.isFinite(value) ? value : '--';
+  };
+
+  fillList('strengthAnalysis', strengthItems);
+  fillList('concernAnalysis', concernItems);
+  fillList('positionAnalysis', positionItems);
+  fillList('trainingAnalysis', trainingItems);
+  setScore('analysisScorePower', powerScore);
+  setScore('analysisScoreSpeed', speedScore);
+  setScore('analysisScoreEndurance', enduranceScore);
+  setScore('analysisScoreDevelopment', developmentScore);
+
   const benchmarkCtx = document.getElementById('benchmarkChart')?.getContext('2d');
   if (benchmarkCtx) {
     if (charts.benchmark) charts.benchmark.destroy();
-    const power = dataStore.power[dataStore.power.length - 1] || {};
     charts.benchmark = new Chart(benchmarkCtx, {
       type: 'bar',
       data: {
         labels: [t('原地纵跳'), t('助跑纵跳'), t('20米冲刺'), t('折返跑')],
         datasets: [{
-          label: 'Murray',
-          data: [power.sj || 0, power.maxVert || 0, power.sprint20m ? (5 - power.sprint20m) * 10 : 0, 80],
+          label: playerName,
+          data: [
+            latestPower.sj || 0,
+            latestPower.maxVert || 0,
+            Number.isFinite(latestSpeed.sprint20m) ? Math.max(0, (5 - latestSpeed.sprint20m) * 10) : 0,
+            latestEndurance.shuttleRuns || latestEndurance.yoyoLevel || 0
+          ],
           backgroundColor: 'rgba(249, 115, 22, 0.8)'
         }, {
           label: '同龄基准',
-          data: [24.7, 32.3, 10.9, 47],
+          data: [benchmark.jump, benchmark.maxVert, Math.max(0, (5 - benchmark.sprint20m) * 10), benchmark.endurance * 8],
           backgroundColor: 'rgba(148, 163, 184, 0.5)'
         }]
       },
       options: { responsive: true, maintainAspectRatio: false }
     });
   }
+
+  ['strengthAnalysis', 'concernAnalysis', 'positionAnalysis', 'trainingAnalysis'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) applyTranslations(el);
+  });
 }
 
 // 报告功能
