@@ -982,16 +982,20 @@ tr:hover td { background: var(--surface2); }
                 <input type="number" id="plank" placeholder="例如: 60">
               </div>
               <div class="form-group">
-                <label>握力 - 右手 (kg)</label>
-                <input type="number" id="gripRight" step="0.1" placeholder="例如: 25.5">
-              </div>
-              <div class="form-group">
-                <label>握力 - 左手 (kg)</label>
-                <input type="number" id="gripLeft" step="0.1" placeholder="例如: 23.0">
-              </div>
-              <div class="form-group">
                 <label>30秒自重深蹲次数</label>
                 <input type="number" id="benchPress" placeholder="例如: 22">
+              </div>
+              <div class="form-group">
+                <label>仰卧起坐 / 卷腹 (1分钟，可选)</label>
+                <input type="number" id="situps" placeholder="例如: 28">
+              </div>
+              <div class="form-group">
+                <label>握力 - 右手 (kg，可选)</label>
+                <input type="number" id="gripRight" step="0.1" placeholder="有握力器再测">
+              </div>
+              <div class="form-group">
+                <label>握力 - 左手 (kg，可选)</label>
+                <input type="number" id="gripLeft" step="0.1" placeholder="有握力器再测">
               </div>
             </div>
             <div class="section-title">进阶可选测试</div>
@@ -1015,6 +1019,7 @@ tr:hover td { background: var(--surface2); }
             <ul class="suggestion-list">
               <li>俯卧撑、引体、平板支撑最适合青少年长期跟踪，也最安全。</li>
               <li>30秒自重深蹲可以快速反映下肢力量耐力，不需要杠铃。</li>
+              <li>没有握力器也完全可以，先用俯卧撑、引体、平板和深蹲次数追踪力量发展。</li>
               <li>1RM 只建议在有教练保护、动作成熟时再测，不适合作为日常必测项目。</li>
             </ul>
           </div>
@@ -5377,10 +5382,11 @@ const MODULE_INSIGHT_CONFIG = {
     dataKey: 'strength',
     metrics: [
       { key: 'pushups', label: '俯卧撑', unit: '次', direction: 'up', step: 2 },
+      { key: 'pullups', label: '引体向上', unit: '次', direction: 'up', step: 1 },
       { key: 'plank', label: '平板支撑', unit: '秒', direction: 'up', step: 10 },
-      { key: 'gripRight', label: '右手握力', unit: 'kg', direction: 'up', step: 1 }
+      { key: 'benchPress', label: '30秒自重深蹲', unit: '次', direction: 'up', step: 2 }
     ],
-    advice: ['先把动作标准做稳，再逐步加次数或重量，力量增长会更安全。', '核心力量和握力一起跟踪，更容易看到控球和对抗的转化。']
+    advice: ['先把动作标准做稳，再逐步加次数或重量，力量增长会更安全。', '没有握力器也没关系，优先持续记录俯卧撑、引体、平板和深蹲次数。']
   },
   fms: {
     title: 'FMS对比与下一阶段目标',
@@ -5553,12 +5559,15 @@ const MODULE_HISTORY_CONFIG = {
     title: '力量历史数据',
     columns: [
       { label: '日期', key: 'date' },
-      { label: '卧推次数', key: 'benchPress' },
+      { label: '30秒自重深蹲', key: 'benchPress' },
+      { label: '仰卧起坐', key: 'situps' },
       { label: '深蹲1RM', key: 'squat1RM', unit: 'kg' },
       { label: '硬拉1RM', key: 'deadlift1RM', unit: 'kg' },
       { label: '右手握力', key: 'gripRight', unit: 'kg' },
       { label: '左手握力', key: 'gripLeft', unit: 'kg' },
-      { label: '俯卧撑', key: 'pushups' }
+      { label: '俯卧撑', key: 'pushups' },
+      { label: '引体向上', key: 'pullups' },
+      { label: '平板支撑', key: 'plank', unit: '秒' }
     ]
   },
   shooting: {
@@ -6225,18 +6234,20 @@ function updateEnduranceChart() {
 function updateStrengthChart() { 
   const ctx = document.getElementById('strengthChart')?.getContext('2d');
   if (!ctx || dataStore.strength.length === 0) return;
+  const latest = dataStore.strength[dataStore.strength.length-1] || {};
   
   if (charts.strength) charts.strength.destroy();
   charts.strength = new Chart(ctx, {
     type: 'bar',
     data: {
-      labels: [t('俯卧撑'), t('引体向上'), t('深蹲')],
+      labels: [t('俯卧撑'), t('引体向上'), t('平板支撑'), t('30秒自重深蹲')],
       datasets: [{
         label: '次数',
         data: [
-          dataStore.strength[dataStore.strength.length-1]?.pushup || 0,
-          dataStore.strength[dataStore.strength.length-1]?.pullup || 0,
-          dataStore.strength[dataStore.strength.length-1]?.squat || 0
+          latest.pushups || 0,
+          latest.pullups || 0,
+          latest.plank || 0,
+          latest.benchPress || 0
         ],
         backgroundColor: '#22c55e'
       }]
