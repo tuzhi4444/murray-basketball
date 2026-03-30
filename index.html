@@ -4283,6 +4283,7 @@ function showPage(pageId, evt) {
   if (pageId === 'analysis') updateAnalysis();
   if (pageId === 'reports') updateCompleteness();
   if (pageId === 'training') updateWeeklyPlan();
+  if (pageId !== 'anthropometric') updateModuleInsights(pageId);
   updateLanguageLinks();
 }
 
@@ -4685,6 +4686,297 @@ function updateAnthroInsights() {
       <div class="suggestion-title">🧭 ${t('要达到目标，可以这样做')}</div>
       <ul class="suggestion-list">
         ${effortTips.map(tip => `<li>${tip}</li>`).join('')}
+      </ul>
+    </div>
+  `;
+  applyTranslations(container);
+}
+
+const MODULE_INSIGHT_CONFIG = {
+  growth: {
+    title: '生长发育对比与下一阶段目标',
+    dataKey: 'growth',
+    metrics: [
+      { key: 'height', label: '身高', unit: 'cm', direction: 'up', step: 0.5 },
+      { key: 'weight', label: '体重', unit: 'kg', direction: 'up', step: 0.3 },
+      { key: 'predictedHeight', label: '预测成年身高', unit: 'cm', direction: 'up', step: 1 }
+    ],
+    advice: ['保证睡眠和规律进食，每4-6周复测一次身高体重。', '关注PHV阶段变化，生长快时适当降低高冲击训练量。']
+  },
+  bodycomp: {
+    title: '身体成分对比与下一阶段目标',
+    dataKey: 'bodycomp',
+    metrics: [
+      { key: 'muscleMass', label: '肌肉量', unit: 'kg', direction: 'up', step: 0.5 },
+      { key: 'bodyFat', label: '体脂率', unit: '%', direction: 'down', step: 0.5 },
+      { key: 'leanMass', label: '去脂体重', unit: 'kg', direction: 'up', step: 0.5 }
+    ],
+    advice: ['保持蛋白质摄入和力量训练配合，避免只追求体重变化。', '每周固定同一时间测量，减少饮水和餐后波动带来的误差。']
+  },
+  power: {
+    title: '爆发力对比与下一阶段目标',
+    dataKey: 'power',
+    metrics: [
+      { key: 'maxVert', label: '助跑纵跳', unit: 'cm', direction: 'up', step: 1 },
+      { key: 'broadJump', label: '立定跳远', unit: 'cm', direction: 'up', step: 3 },
+      { key: 'vertReach', label: '纵跳摸高', unit: 'cm', direction: 'up', step: 2 }
+    ],
+    advice: ['每周安排2次下肢爆发训练，重点做起跳技术和落地稳定。', '把踝髋灵活性和核心稳定一起练，能更快转化到摸高和纵跳。']
+  },
+  speed: {
+    title: '速度对比与下一阶段目标',
+    dataKey: 'speed',
+    metrics: [
+      { key: 'sprint20m', label: '20米冲刺', unit: '秒', direction: 'down', step: 0.03 },
+      { key: 'sprint10m', label: '10米加速', unit: '秒', direction: 'down', step: 0.02 },
+      { key: 'maxSpeed', label: '最高速度', unit: 'm/s', direction: 'up', step: 0.1 }
+    ],
+    advice: ['重点提升前3步启动姿势和摆臂效率，短距离速度会更快。', '速度课之间留足恢复，保持每次冲刺都是高质量。']
+  },
+  agility: {
+    title: '敏捷性对比与下一阶段目标',
+    dataKey: 'agility',
+    metrics: [
+      { key: 'tTest', label: 'T型跑', unit: '秒', direction: 'down', step: 0.05 },
+      { key: 'proAgility', label: '5-10-5折返跑', unit: '秒', direction: 'down', step: 0.05 },
+      { key: 'laneAgility', label: '车道敏捷', unit: '秒', direction: 'down', step: 0.05 }
+    ],
+    advice: ['练好减速、转身、再启动三步衔接，敏捷数据提升会更明显。', '每周至少一次脚步专项，保持低重心和不交叉步。']
+  },
+  endurance: {
+    title: '耐力对比与下一阶段目标',
+    dataKey: 'endurance',
+    metrics: [
+      { key: 'yoyoLevel', label: 'Yo-Yo级别', unit: '', direction: 'up', step: 0.5 },
+      { key: 'yoyoDistance', label: 'Yo-Yo距离', unit: 'm', direction: 'up', step: 80 },
+      { key: 'hrRecovery', label: '心率恢复', unit: 'bpm', direction: 'up', step: 3 }
+    ],
+    advice: ['耐力课优先做节奏稳定的间歇跑，再逐步增加高强度来回次数。', '提高恢复质量和基础睡眠，心率恢复会更容易进步。']
+  },
+  strength: {
+    title: '力量对比与下一阶段目标',
+    dataKey: 'strength',
+    metrics: [
+      { key: 'pushups', label: '俯卧撑', unit: '次', direction: 'up', step: 2 },
+      { key: 'plank', label: '平板支撑', unit: '秒', direction: 'up', step: 10 },
+      { key: 'gripRight', label: '右手握力', unit: 'kg', direction: 'up', step: 1 }
+    ],
+    advice: ['先把动作标准做稳，再逐步加次数或重量，力量增长会更安全。', '核心力量和握力一起跟踪，更容易看到控球和对抗的转化。']
+  },
+  fms: {
+    title: 'FMS对比与下一阶段目标',
+    dataKey: 'fms',
+    metrics: [
+      { key: 'total', label: 'FMS总分', unit: '分', direction: 'up', step: 1 },
+      { key: 'fmsSquat', label: '深蹲', unit: '分', direction: 'up', step: 1 },
+      { key: 'fmsHurdle', label: '跨栏步', unit: '分', direction: 'up', step: 1 }
+    ],
+    advice: ['优先补最低分动作，不要平均用力，先解决明显短板。', '动作质量提升后，再增加力量和爆发训练会更稳。']
+  },
+  shooting: {
+    title: '投篮对比与下一阶段目标',
+    dataKey: 'shooting',
+    metrics: [
+      { key: 'freeThrow', label: '罚球', unit: '/10', direction: 'up', step: 1 },
+      { key: 'dribbleShoot', label: '运球后投篮', unit: '/10', direction: 'up', step: 1 },
+      { key: 'catchShoot', label: '接球投篮', unit: '/10', direction: 'up', step: 1 }
+    ],
+    advice: ['每天先做固定手型和近距离命中，再转到移动和接球投篮。', '命中率提升的关键是出手节奏一致，而不是只堆数量。']
+  },
+  dribbling: {
+    title: '运球对比与下一阶段目标',
+    dataKey: 'dribbling',
+    metrics: [
+      { key: 'dribbleRight', label: '右手直线运球', unit: '秒', direction: 'down', step: 0.1 },
+      { key: 'dribbleLeft', label: '左手直线运球', unit: '秒', direction: 'down', step: 0.1 },
+      { key: 'turnovers', label: '高强度失误', unit: '次', direction: 'down', step: 1 }
+    ],
+    advice: ['先把低重心和抬头运球稳定下来，再追求更快速度。', '弱手训练占比至少40%，运球稳定性才会真正提升。']
+  },
+  passing: {
+    title: '传球对比与下一阶段目标',
+    dataKey: 'passing',
+    metrics: [
+      { key: 'chestPass', label: '胸前传球', unit: '/10', direction: 'up', step: 1 },
+      { key: 'bouncePass', label: '击地传球', unit: '/10', direction: 'up', step: 1 },
+      { key: 'passDecision', label: '传球决策时间', unit: '秒', direction: 'down', step: 0.05 }
+    ],
+    advice: ['传球练习要和观察防守一起做，只练准度不够。', '把决策时间和命中率一起追踪，才能接近比赛真实表现。']
+  },
+  defense: {
+    title: '防守对比与下一阶段目标',
+    dataKey: 'defense',
+    metrics: [
+      { key: 'defensiveSlide', label: '防守滑步', unit: '秒', direction: 'down', step: 0.08 },
+      { key: 'reactionTime', label: '反应启动', unit: '秒', direction: 'down', step: 0.02 },
+      { key: 'contestRate', label: '干扰成功率', unit: '%', direction: 'up', step: 5 }
+    ],
+    advice: ['防守提升重点在第一步反应和低重心，不只是横移速度。', '把滑步、启动和干扰投篮组合练，比赛转化会更强。']
+  },
+  game: {
+    title: '比赛表现对比与下一阶段目标',
+    dataKey: 'game',
+    metrics: [
+      { key: 'points', label: '得分', unit: '分', direction: 'up', step: 2 },
+      { key: 'assists', label: '助攻', unit: '次', direction: 'up', step: 1 },
+      { key: 'efficiency', label: '效率值', unit: '', direction: 'up', step: 2 }
+    ],
+    advice: ['比赛目标不要只盯得分，助攻、失误和效率值一起看更准确。', '赛后及时复盘两三个关键回合，进步会比只看总数据更快。']
+  },
+  cognitive: {
+    title: '认知能力对比与下一阶段目标',
+    dataKey: 'cognitive',
+    metrics: [
+      { key: 'decisionCorrect', label: '决策正确数', unit: '', direction: 'up', step: 1 },
+      { key: 'decisionTime', label: '平均决策时间', unit: '秒', direction: 'down', step: 0.05 },
+      { key: 'anticipation', label: '预判准确率', unit: '%', direction: 'up', step: 5 }
+    ],
+    advice: ['认知训练要和视频阅读、实战情景题一起做，效果更明显。', '先提升正确率，再缩短决策时间，不要一开始只追求快。']
+  },
+  psychology: {
+    title: '心理状态对比与下一阶段目标',
+    dataKey: 'psychology',
+    metrics: [
+      { key: 'motivation', label: '训练动机', unit: '分', direction: 'up', step: 1 },
+      { key: 'focus', label: '注意力集中', unit: '分', direction: 'up', step: 1 },
+      { key: 'anxiety', label: '焦虑水平', unit: '分', direction: 'down', step: 1 }
+    ],
+    advice: ['赛前固定呼吸流程和简短自我提示，心理数据通常会更稳。', '动机和注意力要跟训练反馈绑定，不要只看主观感觉。']
+  },
+  nutrition: {
+    title: '恢复状态对比与下一阶段目标',
+    dataKey: 'nutrition',
+    metrics: [
+      { key: 'sleepHours', label: '睡眠时长', unit: '小时', direction: 'up', step: 0.5 },
+      { key: 'sleepQuality', label: '睡眠质量', unit: '分', direction: 'up', step: 1 },
+      { key: 'soreness', label: '肌肉酸痛', unit: '分', direction: 'down', step: 1 }
+    ],
+    advice: ['优先把睡眠和补水稳定下来，恢复数据会最先改善。', '高负荷日后记录酸痛和疲劳，能帮助及时调整训练。']
+  },
+  injury: {
+    title: '伤病恢复对比与下一阶段目标',
+    dataKey: 'injury',
+    metrics: [
+      { key: 'daysOff', label: '休息天数', unit: '天', direction: 'down', step: 1 }
+    ],
+    advice: ['伤病恢复期优先关注疼痛是否反复，不要急于恢复满强度。', '同部位重复受伤时，先补稳定性和动作模式，再回到专项训练。']
+  },
+  load: {
+    title: '训练负荷对比与下一阶段目标',
+    dataKey: 'load',
+    metrics: [
+      { key: 'sRpe', label: 'sRPE', unit: '', direction: 'up', step: 80 },
+      { key: 'duration', label: '训练时长', unit: '分钟', direction: 'up', step: 10 },
+      { key: 'rpe', label: '主观疲劳', unit: '分', direction: 'down', step: 1 }
+    ],
+    advice: ['负荷不追求每次更大，重点是周内分配稳定、恢复跟得上。', '把训练时长和主观疲劳一起看，比只看单一时长更有效。']
+  }
+};
+
+function getMetricDisplayValue(value, metric) {
+  if (!Number.isFinite(value)) return null;
+  if (metric.unit === '/10') return `${value}${metric.unit}`;
+  const decimals = metric.decimals ?? (String(metric.step || '').includes('.') ? String(metric.step).split('.')[1].length : 0);
+  return `${value.toFixed(decimals)}${metric.unit || ''}`;
+}
+
+function getMetricDelta(latest, previous, metric) {
+  if (!Number.isFinite(latest) || !Number.isFinite(previous)) return t('暂无上次对比');
+  const delta = latest - previous;
+  if (delta === 0) return `0${metric.unit || ''}`;
+  const decimals = metric.decimals ?? (String(metric.step || '').includes('.') ? String(metric.step).split('.')[1].length : 0);
+  return `${delta > 0 ? '+' : ''}${delta.toFixed(decimals)}${metric.unit || ''}`;
+}
+
+function getMetricTarget(latest, metric) {
+  if (!Number.isFinite(latest)) return t('先完成本项记录');
+  const step = metric.step || 1;
+  const decimals = metric.decimals ?? (String(step).includes('.') ? String(step).split('.')[1].length : 0);
+  const target = metric.direction === 'down' ? latest - step : latest + step;
+  const normalizedTarget = metric.direction === 'down' ? Math.max(0, target) : target;
+  return `${normalizedTarget.toFixed(decimals)}${metric.unit || ''}`;
+}
+
+function ensureModuleInsightsCard(pageId, title) {
+  const page = document.getElementById(pageId);
+  if (!page) return null;
+  let card = document.getElementById(`${pageId}InsightsCard`);
+  if (!card) {
+    card = document.createElement('div');
+    card.className = 'card';
+    card.id = `${pageId}InsightsCard`;
+    card.innerHTML = `
+      <div class="card-title"><span class="icon">🎯</span>${title}</div>
+      <div id="${pageId}Insights"></div>
+    `;
+    page.appendChild(card);
+  }
+  return document.getElementById(`${pageId}Insights`);
+}
+
+function updateModuleInsights(pageId) {
+  const config = MODULE_INSIGHT_CONFIG[pageId];
+  if (!config) return;
+  const container = ensureModuleInsightsCard(pageId, config.title);
+  if (!container) return;
+
+  const records = dataStore[config.dataKey] || [];
+  const latest = records[records.length - 1];
+  const previous = records[records.length - 2];
+
+  if (!latest) {
+    container.innerHTML = `
+      <div class="suggestion-card">
+        <div class="suggestion-title">${t('暂无记录')}</div>
+        <ul class="suggestion-list">
+          <li>${t('先完成当前模块的数据录入，系统才会生成对比、目标和训练建议。')}</li>
+        </ul>
+      </div>
+    `;
+    applyTranslations(container);
+    return;
+  }
+
+  const metrics = config.metrics.filter(metric => Number.isFinite(latest[metric.key]));
+  const metricRows = (metrics.length ? metrics : config.metrics).map(metric => {
+    const latestValue = latest[metric.key];
+    const previousValue = previous?.[metric.key];
+    return {
+      label: metric.label,
+      current: getMetricDisplayValue(latestValue, metric) || t('待记录'),
+      delta: getMetricDelta(latestValue, previousValue, metric),
+      target: getMetricTarget(latestValue, metric)
+    };
+  });
+
+  const adviceItems = [...config.advice];
+  const weakest = metrics.find(metric => {
+    const value = latest[metric.key];
+    return Number.isFinite(value) && ((metric.direction === 'down' && value > (metric.warningThreshold ?? value - 1)) || metric.direction === 'up');
+  });
+  if (weakest) {
+    adviceItems.unshift(`${t('优先关注')}${t(weakest.label)}${t('，把本周期目标先缩小到稳定进步，而不是一次跨太大。')}`);
+  }
+
+  container.innerHTML = `
+    <div class="two-col">
+      <div class="suggestion-card priority-high">
+        <div class="suggestion-title">📊 ${t('和上一次对比')}</div>
+        <ul class="suggestion-list">
+          ${metricRows.map(row => `<li>${t(row.label)}: ${row.current} | ${t('变化')}: ${row.delta}</li>`).join('')}
+        </ul>
+      </div>
+      <div class="suggestion-card priority-medium">
+        <div class="suggestion-title">🎯 ${t('下一阶段目标')}</div>
+        <ul class="suggestion-list">
+          ${metricRows.map(row => `<li>${t(row.label)}: ${row.target}</li>`).join('')}
+        </ul>
+      </div>
+    </div>
+    <div class="suggestion-card">
+      <div class="suggestion-title">🧭 ${t('要达到目标，可以这样做')}</div>
+      <ul class="suggestion-list">
+        ${adviceItems.map(item => `<li>${t(item)}</li>`).join('')}
       </ul>
     </div>
   `;
