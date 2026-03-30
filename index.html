@@ -509,6 +509,11 @@ tr:hover td { background: var(--surface2); }
             <div id="dashboardRecentActivity"></div>
           </div>
         </div>
+
+        <div class="card">
+          <div class="card-title"><span class="icon">🏠</span>居家训练方案</div>
+          <div id="dashboardHomePlan"></div>
+        </div>
         
         <div class="two-col">
           <div class="card">
@@ -4839,6 +4844,7 @@ function updateDashboard() {
   
   updatePlayerProfileUI();
   updateDashboardHighlights();
+  updateDashboardHomePlan();
   updateDashboardRecentActivity();
   updateRadarChart();
   updateTrendChart();
@@ -4925,6 +4931,147 @@ function updateDashboardHighlights() {
         ${summary.length ? summary.map(item => `<li>${item}</li>`).join('') : `<li>${t('先录入测量、体能和恢复数据，系统会给出更具体的周建议。')}</li>`}
       </ul>
     </div>
+  `;
+  applyTranslations(container);
+}
+
+function updateDashboardHomePlan() {
+  const container = document.getElementById('dashboardHomePlan');
+  if (!container) return;
+
+  const latestPower = dataStore.power[dataStore.power.length - 1] || {};
+  const latestSpeed = dataStore.speed[dataStore.speed.length - 1] || {};
+  const latestStrength = dataStore.strength[dataStore.strength.length - 1] || {};
+  const latestFms = dataStore.fms[dataStore.fms.length - 1] || {};
+  const latestNutrition = dataStore.nutrition[dataStore.nutrition.length - 1] || {};
+  const latestDribbling = dataStore.dribbling[dataStore.dribbling.length - 1] || {};
+
+  const fmsTotal = calculateFMSTotal(latestFms);
+  const blocks = [];
+  const focusTags = [];
+
+  blocks.push({
+    title: '热身激活 8分钟',
+    items: [
+      '开合跳 40秒 × 2组',
+      '高抬腿原地跑 30秒 × 2组',
+      '髋、踝、肩动态拉伸各 1分钟'
+    ]
+  });
+
+  if (Number.isFinite(latestSpeed.sprint20m) && latestSpeed.sprint20m > 3.7) {
+    focusTags.push('速度');
+    blocks.push({
+      title: '速度脚步 10分钟',
+      items: [
+        '原地快速小步 20秒 × 4组',
+        '前后启动-急停 6次 × 3组',
+        '侧向滑步 20秒 × 4组'
+      ]
+    });
+  }
+
+  if (Number.isFinite(latestPower.maxVert) && latestPower.maxVert < 50) {
+    focusTags.push('爆发力');
+    blocks.push({
+      title: '下肢爆发 10分钟',
+      items: [
+        '深蹲跳 8次 × 3组',
+        '弓步交换跳 6次 × 3组',
+        '提踵 20次 × 3组'
+      ]
+    });
+  }
+
+  if (Number.isFinite(latestStrength.pushups) && latestStrength.pushups < 20) {
+    focusTags.push('基础力量');
+    blocks.push({
+      title: '基础力量 12分钟',
+      items: [
+        '俯卧撑 8-12次 × 3组',
+        '平板支撑 30-40秒 × 3组',
+        '30秒自重深蹲 × 3组'
+      ]
+    });
+  } else {
+    blocks.push({
+      title: '核心稳定 10分钟',
+      items: [
+        '平板支撑 40秒 × 3组',
+        '侧桥 25秒/侧 × 3组',
+        '臀桥 15次 × 3组'
+      ]
+    });
+  }
+
+  if (Number.isFinite(latestDribbling.cross) && latestDribbling.cross > 8.6) {
+    focusTags.push('控球');
+    blocks.push({
+      title: '居家控球 10分钟',
+      items: [
+        '右手低运球 40秒 × 3组',
+        '左手低运球 40秒 × 3组',
+        '体前变向连续运球 30秒 × 4组'
+      ]
+    });
+  }
+
+  if (Number.isFinite(fmsTotal) && fmsTotal < 14) {
+    focusTags.push('动作质量');
+    blocks.push({
+      title: '动作修复 8分钟',
+      items: [
+        '深蹲到底停2秒 8次 × 3组',
+        '弓步转体 6次/侧 × 2组',
+        '死虫 10次/侧 × 2组'
+      ]
+    });
+  }
+
+  if (Number.isFinite(latestNutrition.sleepQuality) && latestNutrition.sleepQuality < 7) {
+    focusTags.push('恢复');
+    blocks.push({
+      title: '恢复整理 8分钟',
+      items: [
+        '小腿和大腿前侧拉伸各 1分钟',
+        '髋屈肌拉伸 1分钟/侧',
+        '呼吸放松 3分钟'
+      ]
+    });
+  }
+
+  if (focusTags.length === 0) {
+    focusTags.push('维持状态');
+    blocks.push({
+      title: '综合维持 12分钟',
+      items: [
+        '俯卧撑 10次 × 3组',
+        '平板支撑 30秒 × 3组',
+        '原地运球组合 1分钟 × 3组'
+      ]
+    });
+  }
+
+  const totalMinutes = blocks.reduce((sum, block) => {
+    const match = block.title.match(/(\d+)分钟/);
+    return sum + (match ? Number(match[1]) : 0);
+  }, 0);
+
+  container.innerHTML = `
+    <div class="suggestion-card priority-high">
+      <div class="suggestion-title">🎯 ${t('当前居家训练重点')}</div>
+      <ul class="suggestion-list">
+        <li>${t('主攻方向')}: ${focusTags.join(' / ')}</li>
+        <li>${t('建议总时长')}: ${totalMinutes || 30}${t('分钟')}</li>
+        <li>${t('建议频率')}: ${t('每周 3-4 次，单次以动作质量优先')}</li>
+      </ul>
+    </div>
+    ${blocks.map(block => `
+      <div class="suggestion-card">
+        <div class="suggestion-title">🏀 ${block.title}</div>
+        <ul class="suggestion-list">${block.items.map(item => `<li>${item}</li>`).join('')}</ul>
+      </div>
+    `).join('')}
   `;
   applyTranslations(container);
 }
