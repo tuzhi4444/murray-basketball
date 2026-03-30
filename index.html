@@ -838,7 +838,9 @@ tr:hover td { background: var(--surface2); }
       <div id="agility" class="page">
         <div class="card">
           <div class="card-title"><span class="icon">🔄</span>敏捷性测试</div>
+          <div class="card-subtitle">优先使用普通球场就能完成的 3 项基础测试；高级项目有条件再做</div>
           <form id="agilityForm">
+            <div class="section-title">推荐基础测试</div>
             <div class="form-grid">
               <div class="form-group">
                 <label>测试日期 *</label>
@@ -853,20 +855,34 @@ tr:hover td { background: var(--surface2); }
                 <input type="number" id="proAgility" step="0.01" placeholder="例如: 5.2">
               </div>
               <div class="form-group">
-                <label>车道敏捷 Lane Agility (秒)</label>
-                <input type="number" id="laneAgility" step="0.01" placeholder="NBA标准">
-              </div>
-              <div class="form-group">
-                <label>Illinois敏捷跑 (秒)</label>
-                <input type="number" id="illinois" step="0.01" placeholder="例如: 16.5">
-              </div>
-              <div class="form-group">
-                <label>方形跑 Box Drill (秒)</label>
+                <label>四角折返跑 Box Drill (秒)</label>
                 <input type="number" id="boxDrill" step="0.01" placeholder="例如: 12.0">
+              </div>
+            </div>
+            <div class="section-title">进阶可选测试</div>
+            <div class="form-grid">
+              <div class="form-group">
+                <label>车道敏捷 Lane Agility (可选)</label>
+                <input type="number" id="laneAgility" step="0.01" placeholder="有标准球场再测">
+              </div>
+              <div class="form-group">
+                <label>Illinois敏捷跑 (可选)</label>
+                <input type="number" id="illinois" step="0.01" placeholder="场地足够再测">
               </div>
             </div>
             <button type="submit" class="btn btn-primary">💾 保存敏捷性数据</button>
           </form>
+        </div>
+
+        <div class="card">
+          <div class="card-title"><span class="icon">📏</span>怎么测最实用</div>
+          <div class="suggestion-card">
+            <ul class="suggestion-list">
+              <li>T型跑：4 个标志桶就够，手机计时即可，重点看变向和横移。</li>
+              <li>5-10-5：最适合日常跟踪，布置简单，重复性也最好。</li>
+              <li>四角折返跑：用 4 个桶围成正方形，顺逆时针各做 1 次，取最好成绩。</li>
+            </ul>
+          </div>
         </div>
         
         <div class="card">
@@ -881,39 +897,55 @@ tr:hover td { background: var(--surface2); }
       <div id="endurance" class="page">
         <div class="card">
           <div class="card-title"><span class="icon">🏃</span>耐力测试</div>
+          <div class="card-subtitle">把最容易落地的测试放前面：折返跑、定时跑、心率恢复；Yo-Yo 改成可选</div>
           <form id="enduranceForm">
+            <div class="section-title">推荐基础测试</div>
             <div class="form-grid">
               <div class="form-group">
                 <label>测试日期 *</label>
                 <input type="date" id="enduranceDate" required>
               </div>
               <div class="form-group">
-                <label>Yo-Yo间歇恢复测试级别</label>
-                <input type="number" id="yoyoLevel" step="0.1" placeholder="例如: 12.5">
-              </div>
-              <div class="form-group">
-                <label>Yo-Yo总距离 (m)</label>
-                <input type="number" id="yoyoDistance" placeholder="例如: 1600">
+                <label>3分钟折返跑总距离 (m)</label>
+                <input type="number" id="yoyoDistance" placeholder="例如: 520">
               </div>
               <div class="form-group">
                 <label>折返跑次数</label>
-                <input type="number" id="shuttleRuns" placeholder="例如: 80">
+                <input type="number" id="shuttleRuns" placeholder="例如: 28">
               </div>
               <div class="form-group">
-                <label>12分钟跑 (m)</label>
-                <input type="number" id="run12min" placeholder="例如: 2400">
-              </div>
-              <div class="form-group">
-                <label>1500米跑 (秒)</label>
-                <input type="number" id="run1500m" placeholder="例如: 360">
+                <label>6分钟跑距离 (m)</label>
+                <input type="number" id="run12min" placeholder="例如: 1100">
               </div>
               <div class="form-group">
                 <label>心率恢复 (1分钟下降bpm)</label>
                 <input type="number" id="hrRecovery" placeholder="例如: 30">
               </div>
             </div>
+            <div class="section-title">进阶可选测试</div>
+            <div class="form-grid">
+              <div class="form-group">
+                <label>Yo-Yo间歇恢复测试级别 (可选)</label>
+                <input type="number" id="yoyoLevel" step="0.1" placeholder="有音频和场地再测">
+              </div>
+              <div class="form-group">
+                <label>1500米跑 (秒，可选)</label>
+                <input type="number" id="run1500m" placeholder="例如: 360">
+              </div>
+            </div>
             <button type="submit" class="btn btn-primary">💾 保存耐力数据</button>
           </form>
+        </div>
+
+        <div class="card">
+          <div class="card-title"><span class="icon">📏</span>怎么测最实用</div>
+          <div class="suggestion-card">
+            <ul class="suggestion-list">
+              <li>3分钟折返跑：两点间固定距离来回跑，最适合青少年日常跟踪。</li>
+              <li>6分钟跑距离：一个人也能测，能稳定反映基础耐力。</li>
+              <li>心率恢复：跑完 1 分钟后心率下降越多，恢复能力通常越好。</li>
+            </ul>
+          </div>
         </div>
         
         <div class="card">
@@ -928,23 +960,25 @@ tr:hover td { background: var(--surface2); }
       <div id="strength" class="page">
         <div class="card">
           <div class="card-title"><span class="icon">💪</span>力量测试</div>
+          <div class="card-subtitle">先做无器械或少器械的基础力量测试；1RM 和成人标准改成进阶可选</div>
           <form id="strengthForm">
+            <div class="section-title">推荐基础测试</div>
             <div class="form-grid">
               <div class="form-group">
                 <label>测试日期 *</label>
                 <input type="date" id="strengthDate" required>
               </div>
               <div class="form-group">
-                <label>卧推84kg最大次数 (NBA标准)</label>
-                <input type="number" id="benchPress" placeholder="NBA平均: 8-12">
+                <label>俯卧撑 (最大次数)</label>
+                <input type="number" id="pushups" placeholder="例如: 25">
               </div>
               <div class="form-group">
-                <label>深蹲1RM (kg)</label>
-                <input type="number" id="squat1RM" placeholder="例如: 60">
+                <label>引体向上 / 辅助引体 (最大次数)</label>
+                <input type="number" id="pullups" placeholder="例如: 5">
               </div>
               <div class="form-group">
-                <label>硬拉1RM (kg)</label>
-                <input type="number" id="deadlift1RM" placeholder="例如: 70">
+                <label>平板支撑 (秒)</label>
+                <input type="number" id="plank" placeholder="例如: 60">
               </div>
               <div class="form-group">
                 <label>握力 - 右手 (kg)</label>
@@ -955,20 +989,34 @@ tr:hover td { background: var(--surface2); }
                 <input type="number" id="gripLeft" step="0.1" placeholder="例如: 23.0">
               </div>
               <div class="form-group">
-                <label>俯卧撑 (最大次数)</label>
-                <input type="number" id="pushups" placeholder="例如: 25">
+                <label>30秒自重深蹲次数</label>
+                <input type="number" id="benchPress" placeholder="例如: 22">
+              </div>
+            </div>
+            <div class="section-title">进阶可选测试</div>
+            <div class="form-grid">
+              <div class="form-group">
+                <label>深蹲1RM (kg，可选)</label>
+                <input type="number" id="squat1RM" placeholder="有教练保护再测">
               </div>
               <div class="form-group">
-                <label>引体向上 (最大次数)</label>
-                <input type="number" id="pullups" placeholder="例如: 5">
-              </div>
-              <div class="form-group">
-                <label>平板支撑 (秒)</label>
-                <input type="number" id="plank" placeholder="例如: 60">
+                <label>硬拉1RM (kg，可选)</label>
+                <input type="number" id="deadlift1RM" placeholder="有器械再测">
               </div>
             </div>
             <button type="submit" class="btn btn-primary">💾 保存力量数据</button>
           </form>
+        </div>
+
+        <div class="card">
+          <div class="card-title"><span class="icon">📏</span>怎么测最实用</div>
+          <div class="suggestion-card">
+            <ul class="suggestion-list">
+              <li>俯卧撑、引体、平板支撑最适合青少年长期跟踪，也最安全。</li>
+              <li>30秒自重深蹲可以快速反映下肢力量耐力，不需要杠铃。</li>
+              <li>1RM 只建议在有教练保护、动作成熟时再测，不适合作为日常必测项目。</li>
+            </ul>
+          </div>
         </div>
         
         <div class="card">
