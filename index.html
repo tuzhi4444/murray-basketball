@@ -537,6 +537,11 @@ tr:hover td { background: var(--surface2); }
           <div class="card-title"><span class="icon">🏠</span>居家训练方案</div>
           <div id="dashboardHomePlan"></div>
         </div>
+
+        <div class="card">
+          <div class="card-title"><span class="icon">🏀</span>球场训练方案</div>
+          <div id="dashboardCourtPlan"></div>
+        </div>
         
         <div class="two-col">
           <div class="card">
@@ -548,23 +553,7 @@ tr:hover td { background: var(--surface2); }
           
           <div class="card">
             <div class="card-title"><span class="icon">🎯</span>优先关注事项</div>
-            <div class="suggestion-card priority-high">
-              <div class="suggestion-title">⚡ 高优先级</div>
-              <ul class="suggestion-list">
-                <li>完成FMS功能性动作筛查（预防伤病）</li>
-                <li>补充投篮热图数据（5个点位命中率）</li>
-                <li>进行Yo-Yo间歇恢复测试</li>
-                <li>建立每日睡眠和恢复监测</li>
-              </ul>
-            </div>
-            <div class="suggestion-card priority-medium">
-              <div class="suggestion-title">📈 中优先级</div>
-              <ul class="suggestion-list">
-                <li>记录T型跑和5-10-5折返跑数据</li>
-                <li>完成传球决策速度测试</li>
-                <li>建立营养摄入记录习惯</li>
-              </ul>
-            </div>
+            <div id="dashboardPriorityList"></div>
           </div>
         </div>
         
@@ -4927,8 +4916,11 @@ function updateDashboard() {
   setDashboardChange('dashSleepChange', nutrition.sleepQuality, prevNutrition.sleepQuality, '/10');
   
   updatePlayerProfileUI();
+  updateDashboardAlerts();
   updateDashboardHighlights();
+  updateDashboardPriorityList();
   updateDashboardHomePlan();
+  updateDashboardCourtPlan();
   updateDashboardRecentActivity();
   updateRadarChart();
   updateTrendChart();
@@ -5013,6 +5005,71 @@ function updateDashboardHighlights() {
       <div class="suggestion-title">📝 ${t('本周执行提示')}</div>
       <ul class="suggestion-list">
         ${summary.length ? summary.map(item => `<li>${item}</li>`).join('') : `<li>${t('先录入测量、体能和恢复数据，系统会给出更具体的周建议。')}</li>`}
+      </ul>
+    </div>
+  `;
+  applyTranslations(container);
+}
+
+function updateDashboardAlerts() {
+  const dashAlerts = document.getElementById('dashAlerts');
+  if (!dashAlerts) return;
+  const latestFms = dataStore.fms[dataStore.fms.length - 1] || {};
+  const latestHeatmap = dataStore.heatmap[dataStore.heatmap.length - 1] || {};
+  const latestEndurance = dataStore.endurance[dataStore.endurance.length - 1] || {};
+  const latestNutrition = dataStore.nutrition[dataStore.nutrition.length - 1] || {};
+  const messages = [];
+
+  if (!dataStore.fms.length) messages.push(t('FMS 功能性动作筛查还没完成，建议优先补齐。'));
+  if (!dataStore.heatmap.length) messages.push(t('投篮热图还没录入，建议至少补齐 5 个点位命中率。'));
+  if (!Number.isFinite(latestEndurance.yoyoLevel) && !Number.isFinite(latestEndurance.yoyoDistance) && !Number.isFinite(latestEndurance.run12min)) {
+    messages.push(t('耐力测试还不完整，建议补充折返跑、6分钟跑或 Yo-Yo 记录。'));
+  }
+  if (!dataStore.nutrition.length) messages.push(t('恢复监测还没建立，建议开始记录睡眠、酸痛和疲劳。'));
+
+  if (!messages.length) {
+    dashAlerts.innerHTML = `
+      <div class="alert alert-success">
+        <strong>${t('✅ 系统提示：')}</strong>${t('主要关键模块已经建立，当前建议重点看连续趋势和训练执行质量。')}
+      </div>
+    `;
+  } else {
+    dashAlerts.innerHTML = `
+      <div class="alert alert-info">
+        <strong>${t('💡 系统提示：')}</strong>${messages.join(' ')}
+      </div>
+    `;
+  }
+  applyTranslations(dashAlerts);
+}
+
+function updateDashboardPriorityList() {
+  const container = document.getElementById('dashboardPriorityList');
+  if (!container) return;
+  const high = [];
+  const medium = [];
+  const latestEndurance = dataStore.endurance[dataStore.endurance.length - 1] || {};
+
+  if (!dataStore.fms.length) high.push(t('完成FMS功能性动作筛查（预防伤病）'));
+  if (!dataStore.heatmap.length) high.push(t('补充投篮热图数据（5个点位命中率）'));
+  if (!Number.isFinite(latestEndurance.yoyoLevel) && !Number.isFinite(latestEndurance.yoyoDistance) && !Number.isFinite(latestEndurance.run12min)) high.push(t('进行Yo-Yo或折返跑耐力测试'));
+  if (!dataStore.nutrition.length) high.push(t('建立每日睡眠和恢复监测'));
+
+  medium.push(t('记录T型跑和5-10-5折返跑数据'));
+  if (!dataStore.passing.length) medium.push(t('完成传球决策速度测试'));
+  if (!dataStore.nutrition.length || !dataStore.nutrition[dataStore.nutrition.length - 1]?.protein) medium.push(t('建立营养摄入记录习惯'));
+
+  container.innerHTML = `
+    <div class="suggestion-card priority-high">
+      <div class="suggestion-title">⚡ ${t('高优先级')}</div>
+      <ul class="suggestion-list">
+        ${(high.length ? high : [t('高优先级项目目前已完成，继续保持更新频率。')]).map(item => `<li>${item}</li>`).join('')}
+      </ul>
+    </div>
+    <div class="suggestion-card priority-medium">
+      <div class="suggestion-title">📈 ${t('中优先级')}</div>
+      <ul class="suggestion-list">
+        ${medium.map(item => `<li>${item}</li>`).join('')}
       </ul>
     </div>
   `;
@@ -5168,9 +5225,18 @@ function updateDashboardHomePlan() {
 
   const homeSteps = [];
   blocks.forEach((block) => {
-    block.items.forEach((item) => {
+    block.items.forEach((item, itemIndex) => {
       const expandedSteps = expandHomePlanItem(block.title, item);
       homeSteps.push(...expandedSteps);
+      const shouldAddTransitionRest = itemIndex < block.items.length - 1;
+      if (shouldAddTransitionRest) {
+        homeSteps.push({
+          title: `动作衔接休息 · ${itemIndex + 1}项后`,
+          blockTitle: block.title,
+          seconds: 20,
+          isRest: true
+        });
+      }
     });
   });
   const shouldResetPlan = JSON.stringify(homePlanState.steps.map(step => step.title)) !== JSON.stringify(homeSteps.map(step => step.title));
@@ -5229,6 +5295,127 @@ function updateDashboardHomePlan() {
         <div class="home-plan-step ${index === homePlanState.currentIndex ? 'active' : ''}">
           <div class="home-plan-step-title">${step.isRest ? `⏸️ ${t('组间休息')}` : step.title}</div>
           <div class="home-plan-step-meta">${step.blockTitle} · ${t('预计时长')}: ${step.seconds}${t('秒')}</div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+  applyTranslations(container);
+}
+
+function updateDashboardCourtPlan() {
+  const container = document.getElementById('dashboardCourtPlan');
+  if (!container) return;
+  const latestSpeed = dataStore.speed[dataStore.speed.length - 1] || {};
+  const latestPower = dataStore.power[dataStore.power.length - 1] || {};
+  const latestEnduranceData = latestEndurance();
+  const latestShooting = dataStore.shooting[dataStore.shooting.length - 1] || {};
+  const latestDribbling = dataStore.dribbling[dataStore.dribbling.length - 1] || {};
+  const latestNutrition = dataStore.nutrition[dataStore.nutrition.length - 1] || {};
+  const blocks = [];
+  const reasons = [];
+
+  blocks.push({
+    title: t('热身与球感 12分钟'),
+    items: [
+      t('慢跑+动态拉伸 4分钟'),
+      t('全场运球往返 3组'),
+      t('近筐手型投篮 20球')
+    ]
+  });
+
+  if (Number.isFinite(latestSpeed.sprint20m) && latestSpeed.sprint20m > 3.6) {
+    reasons.push(t('速度当前需要加强'));
+    blocks.push({
+      title: t('启动速度 12分钟'),
+      items: [
+        t('10米启动冲刺 6次'),
+        t('急停再启动 5次 × 2组'),
+        t('侧向滑步追球 4次 × 2组')
+      ]
+    });
+  }
+  if ((Number.isFinite(latestEnduranceData.run12min) && latestEnduranceData.run12min < 1100) || (Number.isFinite(latestEnduranceData.yoyoDistance) && latestEnduranceData.yoyoDistance < 520)) {
+    reasons.push(t('耐力近期偏弱'));
+    blocks.push({
+      title: t('半场耐力循环 14分钟'),
+      items: [
+        t('半场折返跑 20秒 × 6组'),
+        t('上篮折返 5次 × 3组'),
+        t('罚球线到底线跑 4次 × 2组')
+      ]
+    });
+  }
+  if (Number.isFinite(latestDribbling.dribbleCross) && latestDribbling.dribbleCross > 8.6) {
+    reasons.push(t('控球稳定性需要提高'));
+    blocks.push({
+      title: t('持球突破 12分钟'),
+      items: [
+        t('变向突破上篮 6次 × 2组'),
+        t('胯下+背后连续突破 30秒 × 4组'),
+        t('弱手推进到终结 5次 × 2组')
+      ]
+    });
+  }
+  if (Number.isFinite(latestShooting.catchShoot) && latestShooting.catchShoot < 6) {
+    reasons.push(t('接球投篮命中率还可提升'));
+    blocks.push({
+      title: t('外线投篮 15分钟'),
+      items: [
+        t('五点接球投篮各 8球'),
+        t('罚球 20球'),
+        t('运球急停投篮 10球')
+      ]
+    });
+  }
+  if (Number.isFinite(latestPower.maxVert) && latestPower.maxVert < 50) {
+    reasons.push(t('爆发力需要继续补强'));
+    blocks.push({
+      title: t('篮下终结与爆发 10分钟'),
+      items: [
+        t('连续起跳摸板 8次 × 3组'),
+        t('助跑单脚起跳 5次 × 2组'),
+        t('对抗上篮 6次 × 2组')
+      ]
+    });
+  }
+  if (Number.isFinite(latestNutrition.sleepQuality) && latestNutrition.sleepQuality < 7) {
+    reasons.push(t('恢复一般，控制总量避免过长'));
+    blocks.push({
+      title: t('整理放松 8分钟'),
+      items: [
+        t('慢走+呼吸恢复 3分钟'),
+        t('下肢拉伸 3分钟'),
+        t('肩背放松 2分钟')
+      ]
+    });
+  }
+
+  if (blocks.length === 1) {
+    reasons.push(t('当前数据整体均衡，采用综合球场训练推进'));
+    blocks.push({
+      title: t('综合专项 15分钟'),
+      items: [
+        t('全场推进+传球 6次'),
+        t('五点投篮 25球'),
+        t('1v0突破终结 8次')
+      ]
+    });
+  }
+
+  container.innerHTML = `
+    <div class="suggestion-card priority-medium">
+      <div class="suggestion-title">🏀 ${t('本次球场训练依据')}</div>
+      <ul class="suggestion-list">
+        ${reasons.map(item => `<li>${item}</li>`).join('')}
+      </ul>
+    </div>
+    <div class="home-plan-grid">
+      ${blocks.map(block => `
+        <div class="home-plan-step">
+          <div class="home-plan-step-title">${block.title}</div>
+          <ul>
+            ${block.items.map(item => `<li>${item}</li>`).join('')}
+          </ul>
         </div>
       `).join('')}
     </div>
