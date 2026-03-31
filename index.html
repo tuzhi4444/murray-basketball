@@ -5124,14 +5124,11 @@ function updateDashboardHomePlan() {
     return sum + (match ? Number(match[1]) : 0);
   }, 0);
 
-  const homeSteps = blocks.map((block) => {
-    const stepMatch = block.title.match(/(\d+)分钟/);
-    return {
-      title: block.title,
-      seconds: stepMatch ? Number(stepMatch[1]) * 60 : 300,
-      items: block.items
-    };
-  });
+  const homeSteps = blocks.flatMap((block) => block.items.map((item) => ({
+    title: item,
+    blockTitle: block.title,
+    seconds: estimateHomePlanStepSeconds(item)
+  })));
   const shouldResetPlan = JSON.stringify(homePlanState.steps.map(step => step.title)) !== JSON.stringify(homeSteps.map(step => step.title));
   if (shouldResetPlan) {
     resetHomePlanState(homeSteps);
@@ -5168,6 +5165,7 @@ function updateDashboardHomePlan() {
         <div>
           <div class="timer-label">${t('当前训练内容')}</div>
           <div class="timer-current">${homePlanState.steps[homePlanState.currentIndex]?.title || t('等待训练方案')}</div>
+          <div class="timer-sub">${homePlanState.steps[homePlanState.currentIndex]?.blockTitle || t('居家训练方案')}</div>
           <div class="timer-sub">${t('下一项')}: ${homePlanState.steps[homePlanState.currentIndex + 1]?.title || t('训练完成后拉伸放松')}</div>
         </div>
         <div class="timer-clock">${formatTimer(homePlanState.secondsLeft)}</div>
@@ -5181,13 +5179,28 @@ function updateDashboardHomePlan() {
       ${homePlanState.steps.map((step, index) => `
         <div class="home-plan-step ${index === homePlanState.currentIndex ? 'active' : ''}">
           <div class="home-plan-step-title">${step.title}</div>
-          <div class="home-plan-step-meta">${t('预计时长')}: ${Math.round(step.seconds / 60)}${t('分钟')}</div>
-          <ul>${step.items.map(item => `<li>${item}</li>`).join('')}</ul>
+          <div class="home-plan-step-meta">${step.blockTitle} · ${t('预计时长')}: ${step.seconds}${t('秒')}</div>
         </div>
       `).join('')}
     </div>
   `;
   applyTranslations(container);
+}
+
+function estimateHomePlanStepSeconds(text) {
+  const raw = String(text || '');
+  const minuteMatch = raw.match(/(\d+)\s*分钟/);
+  if (minuteMatch) return Number(minuteMatch[1]) * 60;
+  const secondMatch = raw.match(/(\d+)\s*秒/);
+  if (secondMatch) {
+    const seconds = Number(secondMatch[1]);
+    const roundMatch = raw.match(/×\s*(\d+)\s*组/);
+    return roundMatch ? seconds * Number(roundMatch[1]) : seconds;
+  }
+  if (/俯卧撑|深蹲跳|弓步交换跳|提踵|死虫|弓步转体/.test(raw)) return 45;
+  if (/平板支撑|侧桥/.test(raw)) return 40;
+  if (/拉伸|呼吸放松/.test(raw)) return 60;
+  return 50;
 }
 
 function resetHomePlanState(steps = []) {
@@ -5933,8 +5946,7 @@ const MODULE_HISTORY_CONFIG = {
       { label: '罚球', key: 'freeThrow', unit: '/10' },
       { label: '接球投篮', key: 'catchShoot', unit: '/10' },
       { label: '运球投篮', key: 'dribbleShoot', unit: '/10' },
-      { label: '三分', key: 'threePoint', unit: '/10' },
-      { label: '中距离', key: 'midRange', unit: '/10' }
+      { label: '移动中投篮', key: 'movingShoot', unit: '/10' }
     ]
   },
   dribbling: {
@@ -6621,13 +6633,21 @@ function updateShootingChart() {
     data: {
       labels: dataStore.shooting.map(d => d.date),
       datasets: [{
-        label: '罚球%',
-        data: dataStore.shooting.map(d => d.ft),
+        label: '罚球',
+        data: dataStore.shooting.map(d => d.freeThrow),
         borderColor: '#0f766e'
       }, {
-        label: '三分%',
-        data: dataStore.shooting.map(d => d.threePt),
+        label: '接球投篮',
+        data: dataStore.shooting.map(d => d.catchShoot),
         borderColor: '#3b82f6'
+      }, {
+        label: '运球投篮',
+        data: dataStore.shooting.map(d => d.dribbleShoot),
+        borderColor: '#9333ea'
+      }, {
+        label: '移动中投篮',
+        data: dataStore.shooting.map(d => d.movingShoot),
+        borderColor: '#16a34a'
       }]
     }
   });
