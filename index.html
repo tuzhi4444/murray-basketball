@@ -4053,6 +4053,7 @@ const generatedTranslations = window.MURRAY_TRANSLATIONS_GENERATED || { en: {}, 
 const replacementCache = { en: new Map(), pt: new Map() };
 const replacementKeys = { en: null, pt: null };
 const PLAYER_PROFILE_STORAGE_KEY = 'murray_player_profile';
+const LOCAL_SYNC_META_STORAGE_KEY = 'murray_local_sync_meta';
 const DEFAULT_PLAYER_PROFILE = {
   systemName: 'murray basketball',
   name: '',
@@ -4068,6 +4069,7 @@ let supabaseConfig = loadSupabaseConfig();
 let supabaseClient = null;
 let supabaseClientSignature = '';
 let cloudSyncTimer = null;
+let localSyncMeta = loadLocalSyncMeta();
 let homePlanState = {
   steps: [],
   currentIndex: 0,
@@ -4101,6 +4103,30 @@ function loadSupabaseConfig() {
   } catch {
     return { ...DEFAULT_SUPABASE_CONFIG };
   }
+}
+
+function loadLocalSyncMeta() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(LOCAL_SYNC_META_STORAGE_KEY) || '{}');
+    return {
+      lastLocalWriteAt: parsed?.lastLocalWriteAt || null,
+      lastCloudSyncAt: parsed?.lastCloudSyncAt || null
+    };
+  } catch {
+    return {
+      lastLocalWriteAt: null,
+      lastCloudSyncAt: null
+    };
+  }
+}
+
+function saveLocalSyncMeta() {
+  localStorage.setItem(LOCAL_SYNC_META_STORAGE_KEY, JSON.stringify(localSyncMeta));
+}
+
+function markLocalWrite(timestamp = new Date().toISOString()) {
+  localSyncMeta.lastLocalWriteAt = timestamp;
+  saveLocalSyncMeta();
 }
 
 function t(text) {
@@ -4243,6 +4269,7 @@ function savePlayerProfile() {
   updatePlayerProfileUI();
   updateSchedulePage();
   updateGoalsTable();
+  markLocalWrite();
   queueCloudSync();
   alert(t('球员档案已保存！'));
 }
@@ -4303,6 +4330,7 @@ function getSupabaseClient() {
 function buildAppPayload() {
   return {
     exportedAt: new Date().toISOString(),
+    localUpdatedAt: localSyncMeta.lastLocalWriteAt || new Date().toISOString(),
     profile: playerProfile,
     ageGroup: currentAgeGroup,
     data: dataStore
@@ -4370,6 +4398,7 @@ async function testSupabaseConnection() {
 }
 
 function applyImportedPayload(payload, mergeMode = false) {
+  const importedAt = payload.localUpdatedAt || payload.exportedAt || new Date().toISOString();
   if (payload.profile) {
     playerProfile = { ...playerProfile, ...payload.profile };
     savePlayerProfileStorage();
@@ -4391,6 +4420,8 @@ function applyImportedPayload(payload, mergeMode = false) {
       }
     });
   }
+  localSyncMeta.lastLocalWriteAt = importedAt;
+  saveLocalSyncMeta();
   refreshActivePageView();
 }
 
@@ -4410,6 +4441,8 @@ async function pushCloudData(showNotice = true) {
         updated_at: new Date().toISOString()
       }, { onConflict: 'id' });
     if (error) throw error;
+    localSyncMeta.lastCloudSyncAt = new Date().toISOString();
+    saveLocalSyncMeta();
     updateCloudSyncStatus(`云端同步成功：${new Date().toLocaleString('zh-CN')}`, 'success');
     if (showNotice) showToast('数据已同步到云端', 'success');
     return true;
@@ -4439,7 +4472,16 @@ async function pullCloudData(showNotice = true) {
       if (showNotice) showToast('云端还没有数据', 'info');
       return false;
     }
+    const localStamp = new Date(localSyncMeta.lastLocalWriteAt || 0).getTime();
+    const cloudStamp = new Date(data.payload.localUpdatedAt || data.updated_at || 0).getTime();
+    if (localStamp && cloudStamp && localStamp > cloudStamp) {
+      updateCloudSyncStatus('检测到本地数据更新更晚，本次保留本地内容。', 'warning');
+      if (showNotice) showToast('本地数据比云端更新，已保留本地内容', 'info');
+      return false;
+    }
     applyImportedPayload(data.payload, false);
+    localSyncMeta.lastCloudSyncAt = data.updated_at || new Date().toISOString();
+    saveLocalSyncMeta();
     updateCloudSyncStatus(`已从云端读取：${new Date(data.updated_at || Date.now()).toLocaleString('zh-CN')}`, 'success');
     if (showNotice) showToast('已从云端读取最新数据', 'success');
     return true;
@@ -4609,6 +4651,7 @@ function translateDynamicValue(text) {
 function saveData(key) {
   const canonicalKey = STORAGE_KEY_MAP[key] || ('murray_' + key);
   localStorage.setItem(canonicalKey, JSON.stringify(dataStore[key]));
+  markLocalWrite();
   queueCloudSync();
 }
 
@@ -7473,6 +7516,8 @@ function clearAllData() {
       localStorage.removeItem('murray_' + key);
     });
     playerProfile = { ...DEFAULT_PLAYER_PROFILE };
+    localSyncMeta.lastLocalWriteAt = new Date().toISOString();
+    saveLocalSyncMeta();
     localStorage.removeItem(PLAYER_PROFILE_STORAGE_KEY);
     localStorage.removeItem('murray_ageGroup');
     localStorage.removeItem(CONFIRMED_RECOVERY_FLAG_KEY);
@@ -7497,6 +7542,7 @@ function importData() {
       localStorage.setItem('murray_ageGroup', currentAgeGroup);
     }
     applyImportedPayload(payload, false);
+    markLocalWrite(payload.localUpdatedAt || payload.exportedAt || new Date().toISOString());
     alert(t('数据导入成功！'));
     location.reload();
   } catch (e) {
@@ -7701,6 +7747,7 @@ function changeAgeGroup() {
   localStorage.setItem('murray_ageGroup', currentAgeGroup);
   updateSchedulePage();
   updateGoalsTable();
+  markLocalWrite();
   queueCloudSync();
   showToast(`${t('已切换到：')}${ageGroupConfig[currentAgeGroup].name}`, 'success');
 }
