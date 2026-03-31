@@ -5124,11 +5124,26 @@ function updateDashboardHomePlan() {
     return sum + (match ? Number(match[1]) : 0);
   }, 0);
 
-  const homeSteps = blocks.flatMap((block) => block.items.map((item) => ({
-    title: item,
-    blockTitle: block.title,
-    seconds: estimateHomePlanStepSeconds(item)
-  })));
+  const homeSteps = [];
+  blocks.forEach((block) => {
+    block.items.forEach((item, itemIndex) => {
+      homeSteps.push({
+        title: item,
+        blockTitle: block.title,
+        seconds: estimateHomePlanStepSeconds(item),
+        isRest: false
+      });
+      const shouldAddRest = itemIndex < block.items.length - 1 && !/拉伸|呼吸放松|完全休息/.test(item);
+      if (shouldAddRest) {
+        homeSteps.push({
+          title: '组间休息',
+          blockTitle: block.title,
+          seconds: estimateHomePlanRestSeconds(item),
+          isRest: true
+        });
+      }
+    });
+  });
   const shouldResetPlan = JSON.stringify(homePlanState.steps.map(step => step.title)) !== JSON.stringify(homeSteps.map(step => step.title));
   if (shouldResetPlan) {
     resetHomePlanState(homeSteps);
@@ -5165,7 +5180,7 @@ function updateDashboardHomePlan() {
         <div>
           <div class="timer-label">${t('当前训练内容')}</div>
           <div class="timer-current">${homePlanState.steps[homePlanState.currentIndex]?.title || t('等待训练方案')}</div>
-          <div class="timer-sub">${homePlanState.steps[homePlanState.currentIndex]?.blockTitle || t('居家训练方案')}</div>
+          <div class="timer-sub">${homePlanState.steps[homePlanState.currentIndex]?.isRest ? t('恢复呼吸，准备下一组') : (homePlanState.steps[homePlanState.currentIndex]?.blockTitle || t('居家训练方案'))}</div>
           <div class="timer-sub">${t('下一项')}: ${homePlanState.steps[homePlanState.currentIndex + 1]?.title || t('训练完成后拉伸放松')}</div>
         </div>
         <div class="timer-clock">${formatTimer(homePlanState.secondsLeft)}</div>
@@ -5178,7 +5193,7 @@ function updateDashboardHomePlan() {
     <div class="home-plan-grid">
       ${homePlanState.steps.map((step, index) => `
         <div class="home-plan-step ${index === homePlanState.currentIndex ? 'active' : ''}">
-          <div class="home-plan-step-title">${step.title}</div>
+          <div class="home-plan-step-title">${step.isRest ? `⏸️ ${t('组间休息')}` : step.title}</div>
           <div class="home-plan-step-meta">${step.blockTitle} · ${t('预计时长')}: ${step.seconds}${t('秒')}</div>
         </div>
       `).join('')}
@@ -5201,6 +5216,14 @@ function estimateHomePlanStepSeconds(text) {
   if (/平板支撑|侧桥/.test(raw)) return 40;
   if (/拉伸|呼吸放松/.test(raw)) return 60;
   return 50;
+}
+
+function estimateHomePlanRestSeconds(text) {
+  const raw = String(text || '');
+  const explicit = raw.match(/休息\s*(\d+)\s*秒/);
+  if (explicit) return Number(explicit[1]);
+  if (/平板支撑|侧桥|深蹲跳|弓步交换跳/.test(raw)) return 30;
+  return 20;
 }
 
 function resetHomePlanState(steps = []) {
@@ -5920,7 +5943,7 @@ const MODULE_HISTORY_CONFIG = {
       { label: 'Yo-Yo级别', key: 'yoyoLevel' },
       { label: 'Yo-Yo距离', key: 'yoyoDistance', unit: 'm' },
       { label: '折返跑次数', key: 'shuttleRuns' },
-      { label: '12分钟跑', key: 'run12min', unit: 'm' },
+      { label: '6分钟跑', key: 'run12min', unit: 'm' },
       { label: '1500米跑', key: 'run1500m', unit: 's' }
     ]
   },
@@ -5953,10 +5976,10 @@ const MODULE_HISTORY_CONFIG = {
     title: '运球历史数据',
     columns: [
       { label: '日期', key: 'date' },
-      { label: '右手', key: 'right', unit: 's' },
-      { label: '左手', key: 'left', unit: 's' },
-      { label: '体前变向', key: 'cross', unit: 's' },
-      { label: '背后', key: 'behind', unit: 's' },
+      { label: '右手直线', key: 'dribbleRight', unit: 's' },
+      { label: '左手直线', key: 'dribbleLeft', unit: 's' },
+      { label: '体前变向', key: 'dribbleCross', unit: 's' },
+      { label: '背后成功率', key: 'behindBack', unit: '%' },
       { label: '失误', key: 'turnovers' }
     ]
   },
@@ -6574,7 +6597,7 @@ function updateAgilityChart() {
       labels: dataStore.agility.map(d => d.date),
       datasets: [{
         label: '5-10-5折返跑(秒)',
-        data: dataStore.agility.map(d => d.shuttle505),
+        data: dataStore.agility.map(d => d.proAgility),
         borderColor: '#8b5cf6'
       }]
     }
@@ -6591,9 +6614,17 @@ function updateEnduranceChart() {
     data: {
       labels: dataStore.endurance.map(d => d.date),
       datasets: [{
-        label: 'YO-YO等级',
-        data: dataStore.endurance.map(d => d.yoyoLevel),
+        label: t('3分钟折返跑总距离'),
+        data: dataStore.endurance.map(d => d.yoyoDistance),
         borderColor: '#06b6d4'
+      }, {
+        label: t('6分钟跑距离'),
+        data: dataStore.endurance.map(d => d.run12min),
+        borderColor: '#0f766e'
+      }, {
+        label: t('心率恢复'),
+        data: dataStore.endurance.map(d => d.hrRecovery),
+        borderColor: '#f59e0b'
       }]
     }
   });
@@ -6656,18 +6687,19 @@ function updateShootingChart() {
 function updateDribblingChart() { 
   const ctx = document.getElementById('dribblingChart')?.getContext('2d');
   if (!ctx || dataStore.dribbling.length === 0) return;
+  const latest = dataStore.dribbling[dataStore.dribbling.length-1] || {};
   
   if (charts.dribbling) charts.dribbling.destroy();
   charts.dribbling = new Chart(ctx, {
     type: 'bar',
     data: {
-      labels: [t('全场运球'), t('变向运球'), t('T测试')],
+      labels: [t('右手直线运球'), t('左手直线运球'), t('变向运球')],
       datasets: [{
-        label: '时间(秒)',
+        label: t('时间(秒)'),
         data: [
-          dataStore.dribbling[dataStore.dribbling.length-1]?.fullCourt || 0,
-          dataStore.dribbling[dataStore.dribbling.length-1]?.crossover || 0,
-          dataStore.dribbling[dataStore.dribbling.length-1]?.tTest || 0
+          latest.dribbleRight || 0,
+          latest.dribbleLeft || 0,
+          latest.dribbleCross || 0
         ],
         backgroundColor: '#8b5cf6'
       }]
@@ -6756,19 +6788,20 @@ function updateGameChart() {
 function updateCognitiveChart() { 
   const ctx = document.getElementById('cognitiveChart')?.getContext('2d');
   if (!ctx || dataStore.cognitive.length === 0) return;
+  const latest = dataStore.cognitive[dataStore.cognitive.length-1] || {};
   
   if (charts.cognitive) charts.cognitive.destroy();
   charts.cognitive = new Chart(ctx, {
     type: 'radar',
     data: {
-      labels: [t('决策速度'), t('空间感知'), t('战术理解'), t('注意力')],
+      labels: [t('决策正确率'), t('空间意识'), t('战术理解'), t('比赛阅读')],
       datasets: [{
-        label: '认知能力',
+        label: t('认知能力'),
         data: [
-          dataStore.cognitive[dataStore.cognitive.length-1]?.decision || 0,
-          dataStore.cognitive[dataStore.cognitive.length-1]?.spatial || 0,
-          dataStore.cognitive[dataStore.cognitive.length-1]?.tactical || 0,
-          dataStore.cognitive[dataStore.cognitive.length-1]?.attention || 0
+          Number.isFinite(latest.decisionCorrect) ? (latest.decisionCorrect / 2) : 0,
+          latest.spatialAwareness || 0,
+          latest.tactical || 0,
+          latest.gameReading || 0
         ],
         backgroundColor: 'rgba(147,51,234,0.2)',
         borderColor: '#9333ea'
@@ -6780,19 +6813,20 @@ function updateCognitiveChart() {
 function updatePsychChart() { 
   const ctx = document.getElementById('psychChart')?.getContext('2d');
   if (!ctx || dataStore.psychology.length === 0) return;
+  const latest = dataStore.psychology[dataStore.psychology.length-1] || {};
   
   if (charts.psych) charts.psych.destroy();
   charts.psych = new Chart(ctx, {
     type: 'radar',
     data: {
-      labels: [t('自信心'), t('抗压能力'), t('专注力'), t('团队意识')],
+      labels: [t('能力自信'), t('情绪控制'), t('专注力'), t('训练动机')],
       datasets: [{
-        label: '心理状态',
+        label: t('心理状态'),
         data: [
-          dataStore.psychology[dataStore.psychology.length-1]?.confidence || 0,
-          dataStore.psychology[dataStore.psychology.length-1]?.pressure || 0,
-          dataStore.psychology[dataStore.psychology.length-1]?.focus || 0,
-          dataStore.psychology[dataStore.psychology.length-1]?.teamwork || 0
+          latest.confidenceAbility || 0,
+          latest.emotionalControl || 0,
+          latest.focus || 0,
+          latest.motivation || 0
         ],
         backgroundColor: 'rgba(236,72,153,0.2)',
         borderColor: '#ec4899'
@@ -6816,7 +6850,7 @@ function updateRecoveryChart() {
         borderColor: '#8b5cf6'
       }, {
         label: '疲劳程度',
-        data: dataStore.nutrition.map(d => d.fatigue).slice(-7),
+        data: dataStore.nutrition.map(d => d.rpe).slice(-7),
         borderColor: '#ef4444'
       }]
     }
@@ -7052,7 +7086,7 @@ function updateWeeklyPlan() {
     || (Number.isFinite(latestDribbling.turnovers) && latestDribbling.turnovers >= 4)
     || (Number.isFinite(latestDribbling.left) && Number.isFinite(latestDribbling.right) && Math.abs(latestDribbling.left - latestDribbling.right) >= 0.8);
 
-  const recoveryWeak = (Number.isFinite(latestNutrition.fatigue) && latestNutrition.fatigue >= 7)
+  const recoveryWeak = (Number.isFinite(latestNutrition.rpe) && latestNutrition.rpe >= 7)
     || (Number.isFinite(latestNutrition.sleepQuality) && latestNutrition.sleepQuality <= 5)
     || weeklyLoad >= 2200;
 
@@ -7239,7 +7273,7 @@ function updateWeeklyPlan() {
   const dayNames = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
   const evidence = [
     `${t('最近7天训练负荷')}: ${weeklyLoad || 0}`,
-    `${t('最近恢复状态')}: ${Number.isFinite(latestNutrition.sleepQuality) ? `${latestNutrition.sleepQuality}/10` : t('待记录')} / ${Number.isFinite(latestNutrition.fatigue) ? `${latestNutrition.fatigue}/10` : t('待记录')}`,
+    `${t('最近恢复状态')}: ${Number.isFinite(latestNutrition.sleepQuality) ? `${latestNutrition.sleepQuality}/10` : t('待记录')} / ${Number.isFinite(latestNutrition.rpe) ? `${latestNutrition.rpe}/10` : t('待记录')}`,
     `${t('最近专项测试')}: ${shootingScore !== null ? shootingScore.toFixed(1) : t('待测试')} / ${dribbleIssues.length ? t('已记录') : t('待测试')}`
   ];
 
@@ -7507,7 +7541,7 @@ function generateTrainingFocusSummary() {
 
   const shootingScores = [latestShooting.freeThrow, latestShooting.dribbleShoot, latestShooting.catchShoot].filter(Number.isFinite);
   const shootingAverage = shootingScores.length ? shootingScores.reduce((a, b) => a + b, 0) / shootingScores.length : null;
-  if ((Number.isFinite(latestNutrition.fatigue) && latestNutrition.fatigue >= 7) || (Number.isFinite(latestNutrition.sleepQuality) && latestNutrition.sleepQuality <= 5) || weeklyLoad >= 2200) {
+  if ((Number.isFinite(latestNutrition.rpe) && latestNutrition.rpe >= 7) || (Number.isFinite(latestNutrition.sleepQuality) && latestNutrition.sleepQuality <= 5) || weeklyLoad >= 2200) {
     return '本周建议优先恢复，降低强度并提高睡眠和拉伸质量。';
   }
   if (shootingAverage !== null && shootingAverage < 6) {
