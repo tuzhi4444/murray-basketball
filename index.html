@@ -175,6 +175,23 @@ tr:hover td { background: var(--surface2); }
 .alert-danger { background: rgba(239,68,68,.1); border: 1px solid rgba(239,68,68,.3); color: var(--red); }
 .alert-success { background: rgba(34,197,94,.1); border: 1px solid rgba(34,197,94,.3); color: var(--green); }
 .alert-info { background: rgba(59,130,246,.1); border: 1px solid rgba(59,130,246,.3); color: var(--blue); }
+.home-plan-toolbar { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-bottom: 16px; }
+.home-plan-focus { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+.home-plan-timer { background: linear-gradient(135deg, rgba(15,118,110,.10) 0%, rgba(15,118,110,.04) 100%); border: 1px solid rgba(15,118,110,.18); border-radius: 14px; padding: 18px; margin-bottom: 16px; }
+.home-plan-timer-top { display: flex; justify-content: space-between; gap: 16px; align-items: flex-start; flex-wrap: wrap; }
+.timer-label { font-size: 12px; color: var(--text-muted); margin-bottom: 6px; }
+.timer-current { font-size: 18px; font-weight: 700; color: var(--text); }
+.timer-sub { font-size: 12px; color: var(--text-muted); margin-top: 6px; }
+.timer-clock { font-size: 40px; font-weight: 800; color: var(--primary); line-height: 1; min-width: 120px; text-align: right; }
+.timer-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+.home-plan-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
+.home-plan-step { background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 14px; }
+.home-plan-step.active { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(15,118,110,.10); background: rgba(15,118,110,.05); }
+.home-plan-step-title { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+.home-plan-step-meta { font-size: 11px; color: var(--text-muted); margin-bottom: 10px; }
+.home-plan-step ul { list-style: none; }
+.home-plan-step li { font-size: 12px; color: var(--text); padding: 4px 0 4px 16px; position: relative; }
+.home-plan-step li::before { content: '•'; position: absolute; left: 0; color: var(--primary); font-weight: 700; }
 
 .player-header { display: flex; align-items: center; gap: 20px; margin-bottom: 24px; padding: 20px; background: linear-gradient(135deg, var(--surface) 0%, var(--surface2) 100%); border-radius: 12px; border: 1px solid var(--border); }
 .player-avatar { width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); display: flex; align-items: center; justify-content: center; font-size: 28px; color: #fff; font-weight: 700; }
@@ -4051,6 +4068,13 @@ let supabaseConfig = loadSupabaseConfig();
 let supabaseClient = null;
 let supabaseClientSignature = '';
 let cloudSyncTimer = null;
+let homePlanState = {
+  steps: [],
+  currentIndex: 0,
+  secondsLeft: 0,
+  running: false,
+  timerId: null
+};
 const LEGACY_SYSTEM_TITLES = new Set([
   '青少年篮球训练系统 Pro',
   'Murray Tang 专业篮球训练管理系统 v2.0',
@@ -5057,6 +5081,27 @@ function updateDashboardHomePlan() {
     return sum + (match ? Number(match[1]) : 0);
   }, 0);
 
+  const homeSteps = blocks.map((block) => {
+    const stepMatch = block.title.match(/(\d+)分钟/);
+    return {
+      title: block.title,
+      seconds: stepMatch ? Number(stepMatch[1]) * 60 : 300,
+      items: block.items
+    };
+  });
+  const shouldResetPlan = JSON.stringify(homePlanState.steps.map(step => step.title)) !== JSON.stringify(homeSteps.map(step => step.title));
+  if (shouldResetPlan) {
+    resetHomePlanState(homeSteps);
+  } else if (!homePlanState.steps.length) {
+    resetHomePlanState(homeSteps);
+  } else {
+    homePlanState.steps = homeSteps;
+    if (!homePlanState.running) {
+      const currentStep = homePlanState.steps[homePlanState.currentIndex] || homePlanState.steps[0];
+      homePlanState.secondsLeft = Math.min(homePlanState.secondsLeft || currentStep.seconds, currentStep.seconds);
+    }
+  }
+
   container.innerHTML = `
     <div class="suggestion-card priority-high">
       <div class="suggestion-title">🎯 ${t('当前居家训练重点')}</div>
@@ -5066,14 +5111,135 @@ function updateDashboardHomePlan() {
         <li>${t('建议频率')}: ${t('每周 3-4 次，单次以动作质量优先')}</li>
       </ul>
     </div>
-    ${blocks.map(block => `
-      <div class="suggestion-card">
-        <div class="suggestion-title">🏀 ${block.title}</div>
-        <ul class="suggestion-list">${block.items.map(item => `<li>${item}</li>`).join('')}</ul>
+    <div class="home-plan-toolbar">
+      <button class="btn btn-primary" type="button" onclick="toggleHomePlanTimer()">${homePlanState.running ? '⏸️ 暂停训练' : '▶️ 开始训练'}</button>
+      <button class="btn btn-secondary" type="button" onclick="prevHomePlanStep()">⏮️ 上一项</button>
+      <button class="btn btn-secondary" type="button" onclick="nextHomePlanStep()">⏭️ 下一项</button>
+      <button class="btn btn-secondary" type="button" onclick="resetHomePlanTimer()">🔄 重新开始</button>
+    </div>
+    <div class="home-plan-focus">
+      ${focusTags.map(tag => `<span class="badge badge-blue">${tag}</span>`).join('')}
+    </div>
+    <div class="home-plan-timer">
+      <div class="home-plan-timer-top">
+        <div>
+          <div class="timer-label">${t('当前训练内容')}</div>
+          <div class="timer-current">${homePlanState.steps[homePlanState.currentIndex]?.title || t('等待训练方案')}</div>
+          <div class="timer-sub">${t('下一项')}: ${homePlanState.steps[homePlanState.currentIndex + 1]?.title || t('训练完成后拉伸放松')}</div>
+        </div>
+        <div class="timer-clock">${formatTimer(homePlanState.secondsLeft)}</div>
       </div>
-    `).join('')}
+      <div class="timer-actions">
+        <span class="badge ${homePlanState.running ? 'badge-green' : 'badge-gray'}">${homePlanState.running ? t('计时进行中') : t('等待开始')}</span>
+        <span class="badge badge-purple">${t('进度')}: ${homePlanState.steps.length ? homePlanState.currentIndex + 1 : 0}/${homePlanState.steps.length}</span>
+      </div>
+    </div>
+    <div class="home-plan-grid">
+      ${homePlanState.steps.map((step, index) => `
+        <div class="home-plan-step ${index === homePlanState.currentIndex ? 'active' : ''}">
+          <div class="home-plan-step-title">${step.title}</div>
+          <div class="home-plan-step-meta">${t('预计时长')}: ${Math.round(step.seconds / 60)}${t('分钟')}</div>
+          <ul>${step.items.map(item => `<li>${item}</li>`).join('')}</ul>
+        </div>
+      `).join('')}
+    </div>
   `;
   applyTranslations(container);
+}
+
+function resetHomePlanState(steps = []) {
+  if (homePlanState.timerId) {
+    clearInterval(homePlanState.timerId);
+  }
+  homePlanState = {
+    steps,
+    currentIndex: 0,
+    secondsLeft: steps[0]?.seconds || 0,
+    running: false,
+    timerId: null
+  };
+}
+
+function formatTimer(totalSeconds) {
+  const safe = Math.max(0, Number(totalSeconds) || 0);
+  const minutes = Math.floor(safe / 60);
+  const seconds = safe % 60;
+  return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+}
+
+function refreshHomePlanTimerView() {
+  updateDashboardHomePlan();
+}
+
+function startHomePlanTimer() {
+  if (!homePlanState.steps.length || homePlanState.running) return;
+  if (!homePlanState.secondsLeft) {
+    homePlanState.secondsLeft = homePlanState.steps[homePlanState.currentIndex]?.seconds || 0;
+  }
+  homePlanState.running = true;
+  homePlanState.timerId = setInterval(() => {
+    homePlanState.secondsLeft -= 1;
+    if (homePlanState.secondsLeft <= 0) {
+      nextHomePlanStep(true);
+      return;
+    }
+    refreshHomePlanTimerView();
+  }, 1000);
+  refreshHomePlanTimerView();
+}
+
+function pauseHomePlanTimer() {
+  if (homePlanState.timerId) {
+    clearInterval(homePlanState.timerId);
+  }
+  homePlanState.timerId = null;
+  homePlanState.running = false;
+  refreshHomePlanTimerView();
+}
+
+function toggleHomePlanTimer() {
+  if (homePlanState.running) {
+    pauseHomePlanTimer();
+  } else {
+    startHomePlanTimer();
+  }
+}
+
+function nextHomePlanStep(autoAdvance = false) {
+  if (!homePlanState.steps.length) return;
+  const wasRunning = homePlanState.running;
+  if (homePlanState.timerId) clearInterval(homePlanState.timerId);
+  homePlanState.timerId = null;
+  homePlanState.running = false;
+  if (homePlanState.currentIndex < homePlanState.steps.length - 1) {
+    homePlanState.currentIndex += 1;
+    homePlanState.secondsLeft = homePlanState.steps[homePlanState.currentIndex].seconds;
+    if (wasRunning || autoAdvance) startHomePlanTimer();
+    else refreshHomePlanTimerView();
+  } else {
+    homePlanState.secondsLeft = 0;
+    refreshHomePlanTimerView();
+    showToast(t('居家训练已完成，记得做拉伸和补水。'), 'success');
+  }
+}
+
+function prevHomePlanStep() {
+  if (!homePlanState.steps.length) return;
+  const wasRunning = homePlanState.running;
+  if (homePlanState.timerId) clearInterval(homePlanState.timerId);
+  homePlanState.timerId = null;
+  homePlanState.running = false;
+  if (homePlanState.currentIndex > 0) {
+    homePlanState.currentIndex -= 1;
+  }
+  homePlanState.secondsLeft = homePlanState.steps[homePlanState.currentIndex].seconds;
+  if (wasRunning) startHomePlanTimer();
+  else refreshHomePlanTimerView();
+}
+
+function resetHomePlanTimer() {
+  resetHomePlanState(homePlanState.steps);
+  refreshHomePlanTimerView();
 }
 
 function updateDashboardRecentActivity() {
