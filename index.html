@@ -4863,6 +4863,16 @@ function showSkillTab(tabId) { /* 技能标签 */ }
 function showShootingTab(tabId, evt) {
   document.querySelectorAll('.shooting-tab').forEach(t => t.style.display = 'none');
   activateTab('#shooting .tab', '#shooting' + tabId.charAt(0).toUpperCase() + tabId.slice(1) + 'Tab', evt);
+  ['shootingHistoryCard', 'heatmapHistoryCard', 'biomechHistoryCard'].forEach(id => {
+    const card = document.getElementById(id);
+    if (card) card.style.display = 'none';
+  });
+  if (tabId === 'basic') updateModuleHistory('shooting');
+  if (tabId === 'heatmap') updateModuleHistory('heatmap');
+  if (tabId === 'biomechanics') updateModuleHistory('biomech');
+  const activeHistoryId = tabId === 'basic' ? 'shootingHistoryCard' : (tabId === 'heatmap' ? 'heatmapHistoryCard' : 'biomechHistoryCard');
+  const activeHistoryCard = document.getElementById(activeHistoryId);
+  if (activeHistoryCard) activeHistoryCard.style.display = 'block';
 }
 function showNutritionTab(tabId, evt) {
   document.querySelectorAll('.nutrition-tab').forEach(t => t.style.display = 'none');
@@ -6041,9 +6051,31 @@ const MODULE_HISTORY_CONFIG = {
     columns: [
       { label: '日期', key: 'date' },
       { label: '罚球', key: 'freeThrow', unit: '/10' },
+      { label: '三分球', key: 'threePt', unit: '/10', getValue: getShootingThreePointHistoryValue },
       { label: '接球投篮', key: 'catchShoot', unit: '/10' },
       { label: '运球投篮', key: 'dribbleShoot', unit: '/10' },
       { label: '移动中投篮', key: 'movingShoot', unit: '/10' }
+    ]
+  },
+  heatmap: {
+    title: '投篮热图历史数据',
+    columns: [
+      { label: '日期', key: 'date' },
+      { label: '禁区', key: 'zonePaint', unit: '/10' },
+      { label: '中距离弧顶', key: 'zoneMidTop', unit: '/10' },
+      { label: '三分均值', key: 'zone3Avg', unit: '/10', getValue: getHeatmapThreePointAverage },
+      { label: '三分底角', key: 'zone3Corner', unit: '/10' }
+    ]
+  },
+  biomech: {
+    title: '投篮生物力学历史数据',
+    columns: [
+      { label: '日期', key: 'date' },
+      { label: '释放角度', key: 'releaseAngle', unit: '°' },
+      { label: '释放高度', key: 'releaseHeight' },
+      { label: '膝角度', key: 'kneeAngle', unit: '°' },
+      { label: '髋角度', key: 'hipAngle', unit: '°' },
+      { label: '垂直位移', key: 'verticalDisplacement', unit: 'cm' }
     ]
   },
   dribbling: {
@@ -6127,6 +6159,40 @@ const MODULE_HISTORY_CONFIG = {
   }
 };
 
+function findRecordByDate(records, date) {
+  if (!Array.isArray(records) || !date) return null;
+  for (let i = records.length - 1; i >= 0; i -= 1) {
+    if (records[i]?.date === date) return records[i];
+  }
+  return null;
+}
+
+function getHeatmapThreePointAverage(item) {
+  const values = [item?.zone3Right, item?.zone3Top, item?.zone3Left, item?.zone3Corner].filter(Number.isFinite);
+  if (!values.length) return null;
+  return Number((values.reduce((sum, value) => sum + value, 0) / values.length).toFixed(1));
+}
+
+function normalizeShotHistoryValue(value) {
+  if (Number.isFinite(value)) return value;
+  if (typeof value !== 'string') return null;
+  const trimmed = value.trim();
+  const ratioMatch = trimmed.match(/^(\d+(?:\.\d+)?)\s*\/\s*(\d+(?:\.\d+)?)$/);
+  if (!ratioMatch) return null;
+  const made = Number(ratioMatch[1]);
+  const attempts = Number(ratioMatch[2]);
+  if (!Number.isFinite(made) || !Number.isFinite(attempts) || attempts <= 0) return null;
+  return Number(((made / attempts) * 10).toFixed(1));
+}
+
+function getShootingThreePointHistoryValue(item) {
+  if (item?.threePt !== undefined && item?.threePt !== null && item?.threePt !== '') {
+    return normalizeShotHistoryValue(item.threePt) ?? item.threePt;
+  }
+  const heatmapRecord = findRecordByDate(dataStore.heatmap, item?.date);
+  return getHeatmapThreePointAverage(heatmapRecord);
+}
+
 function getMetricDisplayValue(value, metric) {
   if (!Number.isFinite(value)) return null;
   if (metric.unit === '/10') return `${value}${metric.unit}`;
@@ -6152,7 +6218,8 @@ function getMetricTarget(latest, metric) {
 }
 
 function ensureModuleInsightsCard(pageId, title) {
-  const page = document.getElementById(pageId);
+  const hostPageId = ['heatmap', 'biomech'].includes(pageId) ? 'shooting' : pageId;
+  const page = document.getElementById(hostPageId);
   if (!page) return null;
   let card = document.getElementById(`${pageId}InsightsCard`);
   if (!card) {
@@ -6169,7 +6236,8 @@ function ensureModuleInsightsCard(pageId, title) {
 }
 
 function ensureModuleHistoryCard(pageId, title) {
-  const page = document.getElementById(pageId);
+  const hostPageId = ['heatmap', 'biomech'].includes(pageId) ? 'shooting' : pageId;
+  const page = document.getElementById(hostPageId);
   if (!page) return null;
   let card = document.getElementById(`${pageId}HistoryCard`);
   if (!card) {
@@ -6192,6 +6260,7 @@ function ensureModuleHistoryCard(pageId, title) {
 
 function formatHistoryValue(value, column) {
   if (value === null || value === undefined || value === '') return '--';
+  if (typeof value === 'string' && /^\d+(?:\.\d+)?\s*\/\s*\d+(?:\.\d+)?$/.test(value.trim())) return value;
   if (column.raw) return value;
   if (typeof value === 'number') {
     const decimals = String(value).includes('.') ? 1 : 0;
@@ -6219,7 +6288,10 @@ function updateModuleHistory(pageId) {
 
   body.innerHTML = records.map((item, index) => ({ item, index })).reverse().map(({ item, index }) => `
     <tr>
-      ${config.columns.map(col => `<td>${formatHistoryValue(item[col.key], col)}</td>`).join('')}
+      ${config.columns.map(col => {
+        const value = typeof col.getValue === 'function' ? col.getValue(item, index, records) : item[col.key];
+        return `<td>${formatHistoryValue(value, col)}</td>`;
+      }).join('')}
       <td><button class="btn btn-sm btn-secondary" onclick="deleteDataEntry('${pageId}', ${index})">${t('删除')}</button></td>
     </tr>
   `).join('');
@@ -6741,6 +6813,10 @@ function updateShootingChart() {
         label: '罚球',
         data: dataStore.shooting.map(d => d.freeThrow),
         borderColor: '#0f766e'
+      }, {
+        label: '三分球',
+        data: dataStore.shooting.map(d => getShootingThreePointHistoryValue(d)),
+        borderColor: '#f59e0b'
       }, {
         label: '接球投篮',
         data: dataStore.shooting.map(d => d.catchShoot),
