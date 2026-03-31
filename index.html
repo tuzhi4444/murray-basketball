@@ -5995,7 +5995,8 @@ const MODULE_HISTORY_CONFIG = {
       { label: 'CMJ', key: 'cmj', unit: 'cm' },
       { label: '助跑纵跳', key: 'maxVert', unit: 'cm' },
       { label: '立定跳远', key: 'broadJump', unit: 'cm' },
-      { label: '纵跳摸高', key: 'vertReach', unit: 'cm' }
+      { label: '纵跳摸高', key: 'vertReach', unit: 'cm' },
+      { label: '连续跳', key: 'consecutiveJumps' }
     ]
   },
   speed: {
@@ -6028,6 +6029,7 @@ const MODULE_HISTORY_CONFIG = {
       { label: 'Yo-Yo距离', key: 'yoyoDistance', unit: 'm' },
       { label: '折返跑次数', key: 'shuttleRuns' },
       { label: '6分钟跑', key: 'run12min', unit: 'm' },
+      { label: '心率恢复', key: 'hrRecovery', unit: 'bpm' },
       { label: '1500米跑', key: 'run1500m', unit: 's' }
     ]
   },
@@ -6062,8 +6064,13 @@ const MODULE_HISTORY_CONFIG = {
     columns: [
       { label: '日期', key: 'date' },
       { label: '禁区', key: 'zonePaint', unit: '/10' },
+      { label: '中距离右翼', key: 'zoneMidRight', unit: '/10' },
       { label: '中距离弧顶', key: 'zoneMidTop', unit: '/10' },
+      { label: '中距离左翼', key: 'zoneMidLeft', unit: '/10' },
       { label: '三分均值', key: 'zone3Avg', unit: '/10', getValue: getHeatmapThreePointAverage },
+      { label: '三分右翼', key: 'zone3Right', unit: '/10' },
+      { label: '三分弧顶', key: 'zone3Top', unit: '/10' },
+      { label: '三分左翼', key: 'zone3Left', unit: '/10' },
       { label: '三分底角', key: 'zone3Corner', unit: '/10' }
     ]
   },
@@ -6086,6 +6093,9 @@ const MODULE_HISTORY_CONFIG = {
       { label: '左手直线', key: 'dribbleLeft', unit: 's' },
       { label: '体前变向', key: 'dribbleCross', unit: 's' },
       { label: '背后成功率', key: 'behindBack', unit: '%' },
+      { label: '胯下成功率', key: 'betweenLegs', unit: '%' },
+      { label: '转身成功率', key: 'spinMove', unit: '%' },
+      { label: '双球运球', key: 'twoBall', unit: 's' },
       { label: '失误', key: 'turnovers' }
     ]
   },
@@ -6096,7 +6106,9 @@ const MODULE_HISTORY_CONFIG = {
       { label: '胸前传球', key: 'chestPass', unit: '/10' },
       { label: '击地传球', key: 'bouncePass', unit: '/10' },
       { label: '头上传球', key: 'overheadPass', unit: '/10' },
+      { label: '移动中传球', key: 'sidePass', unit: '/10' },
       { label: '全场长传', key: 'fullCourtPass', unit: '/10' },
+      { label: '脑后传球', key: 'behindPass', unit: '/10' },
       { label: '传球决策', key: 'passDecision', unit: 's' }
     ]
   },
@@ -6108,7 +6120,10 @@ const MODULE_HISTORY_CONFIG = {
       { label: '右滑步', key: 'slideRight', unit: 's' },
       { label: 'Closeout', key: 'closeoutSpeed', unit: 's' },
       { label: '反应启动', key: 'reactionTime', unit: 's' },
-      { label: '卡位', key: 'blocksOut', unit: '/10' }
+      { label: '卡位', key: 'blocksOut', unit: '/10' },
+      { label: '干扰成功率', key: 'contestRate', unit: '%' },
+      { label: '抢断成功率', key: 'stealRate', unit: '%' },
+      { label: '站位评分', key: 'positioning', unit: '/10' }
     ]
   },
   cognitive: {
@@ -6119,7 +6134,11 @@ const MODULE_HISTORY_CONFIG = {
       { label: '决策时间', key: 'decisionTime', unit: 's' },
       { label: '简单反应', key: 'simpleReaction', unit: 'ms' },
       { label: '选择反应', key: 'choiceReaction', unit: 'ms' },
-      { label: '预判准确率', key: 'anticipation', unit: '%' }
+      { label: '预判准确率', key: 'anticipation', unit: '%' },
+      { label: '空间意识', key: 'spatialAwareness', unit: '/10' },
+      { label: '时机把握', key: 'timing', unit: '/10' },
+      { label: '战术理解', key: 'tactical', unit: '/10' },
+      { label: '比赛阅读', key: 'gameReading', unit: '/10' }
     ]
   },
   psychology: {
@@ -6128,8 +6147,12 @@ const MODULE_HISTORY_CONFIG = {
       { label: '日期', key: 'date' },
       { label: '挑战性', key: 'challenge', unit: '/10' },
       { label: '承诺性', key: 'commitment', unit: '/10' },
+      { label: '生活控制', key: 'lifeControl', unit: '/10' },
+      { label: '人际自信', key: 'confidenceInter', unit: '/10' },
       { label: '情绪控制', key: 'emotionalControl', unit: '/10' },
       { label: '能力自信', key: 'confidenceAbility', unit: '/10' },
+      { label: '训练动机', key: 'motivation', unit: '/10' },
+      { label: '焦虑', key: 'anxiety', unit: '/10' },
       { label: '注意力', key: 'focus', unit: '/10' }
     ]
   },
@@ -6138,11 +6161,16 @@ const MODULE_HISTORY_CONFIG = {
     columns: [
       { label: '日期', key: 'date' },
       { label: '总热量', key: 'calories', unit: 'kcal' },
+      { label: '碳水', key: 'carbs', unit: 'g' },
       { label: '蛋白质', key: 'protein', unit: 'g' },
+      { label: '脂肪', key: 'fat', unit: 'g' },
       { label: '水分', key: 'water', unit: 'ml' },
       { label: '睡眠时长', key: 'sleepHours', unit: 'h' },
       { label: '睡眠质量', key: 'sleepQuality', unit: '/10' },
-      { label: '疲劳RPE', key: 'rpe', unit: '/10' }
+      { label: '肌肉酸痛', key: 'soreness', unit: '/10' },
+      { label: '疲劳RPE', key: 'rpe', unit: '/10' },
+      { label: '晨起心率', key: 'restingHR', unit: 'bpm' },
+      { label: 'HRV', key: 'hrv', unit: 'ms' }
     ]
   },
   load: {
