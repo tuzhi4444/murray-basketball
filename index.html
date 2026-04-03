@@ -5230,10 +5230,11 @@ function updateDashboardHomePlan() {
       homeSteps.push(...expandedSteps);
       const shouldAddTransitionRest = itemIndex < block.items.length - 1;
       if (shouldAddTransitionRest) {
+        const nextItem = block.items[itemIndex + 1];
         homeSteps.push({
           title: `动作衔接休息 · ${itemIndex + 1}项后`,
           blockTitle: block.title,
-          seconds: 20,
+          seconds: estimateHomePlanTransitionRestSeconds(item, nextItem),
           isRest: true
         });
       }
@@ -5442,6 +5443,13 @@ function estimateHomePlanRestSeconds(text) {
   const explicit = raw.match(/休息\s*(\d+)\s*秒/);
   if (explicit) return Number(explicit[1]);
   if (/平板支撑|侧桥|深蹲跳|弓步交换跳/.test(raw)) return 30;
+  return 20;
+}
+
+function estimateHomePlanTransitionRestSeconds(currentItem, nextItem) {
+  const current = String(currentItem || '');
+  const next = String(nextItem || '');
+  if (/侧向滑步/.test(current) && /平板支撑/.test(next)) return 60;
   return 20;
 }
 
